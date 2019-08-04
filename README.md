@@ -12,8 +12,6 @@ A. Cabellos-Aparicio.
 
 This project has a [Travis Build](https://travis-ci.com/Data-Science-Projects/demo-routenet).
 
-
- 
 ## Abstract
 Today, network operators still lack functional network models able to make accurate predictions of 
 end-to-end Key Performance Indicators (e.g., delay or jitter) at limited cost. Recently, a novel 

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (c) 2019, Krzysztof Rusek [^1], Paul Almasan [^2]
 #
 # [^1]: AGH University of Science and Technology, Department of
@@ -27,7 +28,7 @@ from tensorflow import keras
 def genPath(R, s, d, connections):
     while s != d:
         yield s
-        s = connections[s][R[s,d]]
+        s = connections[s][R[s, d]]
     yield s
 
 
@@ -45,15 +46,15 @@ def load_routing(routing_file):
 
 
 def make_indices(paths):
-    link_indices=[]
-    path_indices=[]
-    sequ_indices=[]
-    segment=0
+    link_indices = []
+    path_indices = []
+    sequ_indices = []
+    segment = 0
     for p in paths:
         link_indices += p
         path_indices += len(p)*[segment]
         sequ_indices += list(range(len(p)))
-        segment +=1
+        segment += 1
     return link_indices, path_indices, sequ_indices
 
 
@@ -81,14 +82,14 @@ def parse(serialized, target='delay'):
                     'traffic':tf.VarLenFeature(tf.float32),
                     target:tf.VarLenFeature(tf.float32),
                     'link_capacity': tf.VarLenFeature(tf.float32),
-                    'links':tf.VarLenFeature(tf.int64),
-                    'paths':tf.VarLenFeature(tf.int64),
-                    'sequences':tf.VarLenFeature(tf.int64),
-                    'n_links':tf.FixedLenFeature([],tf.int64),
-                    'n_paths':tf.FixedLenFeature([],tf.int64),
-                    'n_total':tf.FixedLenFeature([],tf.int64)
+                    'links': tf.VarLenFeature(tf.int64),
+                    'paths': tf.VarLenFeature(tf.int64),
+                    'sequences': tf.VarLenFeature(tf.int64),
+                    'n_links': tf.FixedLenFeature([],tf.int64),
+                    'n_paths': tf.FixedLenFeature([],tf.int64),
+                    'n_total': tf.FixedLenFeature([],tf.int64)
                 })
-            for k in ['traffic',target,'link_capacity','links','paths','sequences']:
+            for k in ['traffic', target, 'link_capacity', 'links', 'paths', 'sequences']:
                 features[k] = tf.sparse_tensor_to_dense(features[k])
                 if k == 'delay':
                     features[k] = (features[k] - 0.37) / 0.54
@@ -97,35 +98,35 @@ def parse(serialized, target='delay'):
                 if k == 'link_capacity':
                     features[k] = (features[k] - 25.0) / 40.0
 
-    return {k:v for k,v in features.items() if k is not target },features[target]
+    return {k: v for k, v in features.items() if k is not target}, features[target]
 
 
 def cummax(alist, extractor):
     with tf.name_scope('cummax'):
-        maxes = [tf.reduce_max( extractor(v) ) + 1 for v in alist ]
+        maxes = [tf.reduce_max(extractor(v)) + 1 for v in alist]
         cummaxes = [tf.zeros_like(maxes[0])]
         for i in range(len(maxes)-1):
-            cummaxes.append( tf.math.add_n(maxes[0:i+1]))
+            cummaxes.append(tf.math.add_n(maxes[0:i+1]))
 
     return cummaxes
 
 
 def transformation_func(it, batch_size=32):
-    with tf.name_scope("transformation_func"):
+    with tf.name_scope('transformation_func'):
         vs = [it.get_next() for _ in range(batch_size)]
 
-        links_cummax = cummax(vs,lambda v:v[0]['links'] )
-        paths_cummax = cummax(vs,lambda v:v[0]['paths'] )
+        links_cummax = cummax(vs, lambda v: v[0]['links'])
+        paths_cummax = cummax(vs, lambda v: v[0]['paths'])
 
         tensors = ({
-                'traffic':tf.concat([v[0]['traffic'] for v in vs], axis=0),
-                'sequences':tf.concat([v[0]['sequences'] for v in vs], axis=0),
+                'traffic': tf.concat([v[0]['traffic'] for v in vs], axis=0),
+                'sequences': tf.concat([v[0]['sequences'] for v in vs], axis=0),
                 'link_capacity': tf.concat([v[0]['link_capacity'] for v in vs], axis=0),
-                'links':tf.concat([v[0]['links'] + m for v,m in zip(vs, links_cummax) ], axis=0),
-                'paths':tf.concat([v[0]['paths'] + m for v,m in zip(vs, paths_cummax) ], axis=0),
-                'n_links':tf.math.add_n([v[0]['n_links'] for v in vs]),
-                'n_paths':tf.math.add_n([v[0]['n_paths'] for v in vs]),
-                'n_total':tf.math.add_n([v[0]['n_total'] for v in vs])
+                'links': tf.concat([v[0]['links'] + m for v, m in zip(vs, links_cummax)], axis=0),
+                'paths': tf.concat([v[0]['paths'] + m for v, m in zip(vs, paths_cummax)], axis=0),
+                'n_links': tf.math.add_n([v[0]['n_links'] for v in vs]),
+                'n_paths': tf.math.add_n([v[0]['n_paths'] for v in vs]),
+                'n_total': tf.math.add_n([v[0]['n_total'] for v in vs])
             },   tf.concat([v[1] for v in vs], axis=0))
 
     return tensors
@@ -146,7 +147,7 @@ def tfrecord_input_fn(filenames, hparams, shuffle_buf=1000, target='delay'):
     ds = ds.prefetch(10)
 
     it = ds.make_one_shot_iterator()
-    sample = transformation_func(it,hparams.batch_size)
+    sample = transformation_func(it, hparams.batch_size)
 
     return sample
 
@@ -217,7 +218,7 @@ class ComnetModel(tf.keras.Model):
                                                     initial_state = path_state,
                                                     dtype=tf.float32)
             m = tf.gather_nd(outputs,ids)
-            m = tf.math.unsorted_segment_sum(m, links ,f_['n_links'])
+            m = tf.math.unsorted_segment_sum(m, links, f_['n_links'])
 
             # Keras cell expects a list
             link_state, _ = self.edge_update(m, [link_state])
@@ -272,7 +273,8 @@ def model_fn(features, labels, mode, params):
                 'label/mean': tf.metrics.mean(labels),
                 'prediction/mean': tf.metrics.mean(predictions),
                 'mae': tf.metrics.mean_absolute_error(labels, predictions),
-                'rho': tf.contrib.metrics.streaming_pearson_correlation(labels=labels, predictions=predictions),
+                'rho': tf.contrib.metrics.streaming_pearson_correlation(labels=labels,
+                                                                        predictions=predictions),
                 'mre': tf.metrics.mean_relative_error(labels, predictions, labels)
             }
         )
@@ -331,22 +333,24 @@ def train(args):
     )
 
     estimator = tf.estimator.Estimator(
-        model_fn = model_fn,
+        model_fn=model_fn,
         model_dir=args.model_dir,
         params=hparams,
         warm_start_from=args.warm,
         config=my_checkpointing_config
         )
 
-    train_spec = tf.estimator.TrainSpec(input_fn=lambda:tfrecord_input_fn(args.train,
-                                                                          hparams,
-                                                                          shuffle_buf=args.shuffle_buf,
-                                                                          target=args.target),
+    train_spec = tf.estimator.TrainSpec(input_fn=
+                                        lambda: tfrecord_input_fn(args.train,
+                                                                  hparams,
+                                                                  shuffle_buf=args.shuffle_buf,
+                                                                  target=args.target),
                                         max_steps=args.train_steps)
-    eval_spec = tf.estimator.EvalSpec(input_fn=lambda:tfrecord_input_fn(args.eval_,
-                                                                        hparams,
-                                                                        shuffle_buf=None,
-                                                                        target=args.target),
+    eval_spec = tf.estimator.EvalSpec(input_fn=
+                                      lambda: tfrecord_input_fn(args.eval_,
+                                                                hparams,
+                                                                shuffle_buf=None,
+                                                                target=args.target),
                                       throttle_secs=10*60)
 
     tf.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
@@ -507,8 +511,8 @@ def make_tfrecord2(directory, tf_file, ned_file, routing_file, data_file):
 def data(args):
     directory = args.d[0]
     nodes_dir = directory.split('/')[-1]
-    if nodes_dir=='':
-        nodes_dir=directory.split('/')[-2]
+    if nodes_dir == '':
+        nodes_dir = directory.split('/')[-2]
 
     ned_file = ''
     if nodes_dir == 'geant2bw':
@@ -545,7 +549,7 @@ def data(args):
     if not os.path.exists(tfr_eval):
         os.makedirs(tfr_eval)
 
-    tfrecords = glob.glob(directory_tfr+ '*.tfrecords')
+    tfrecords = glob.glob(directory_tfr + '*.tfrecords')
     training = len(tfrecords) * 0.8
     train_samples = random.sample(tfrecords, int(training))
     evaluate_samples = list(set(tfrecords) - set(train_samples))
