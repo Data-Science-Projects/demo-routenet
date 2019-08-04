@@ -109,16 +109,17 @@ def transformation_func(itrtr, batch_size=32):
         links_cummax = cummax(vs, lambda v: v[0]['links'])
         paths_cummax = cummax(vs, lambda v: v[0]['paths'])
 
-        tensors = ({
-                'traffic': tf.concat([v[0]['traffic'] for v in vs], axis=0),
-                'sequences': tf.concat([v[0]['sequences'] for v in vs], axis=0),
-                'link_capacity': tf.concat([v[0]['link_capacity'] for v in vs], axis=0),
-                'links': tf.concat([v[0]['links'] + m for v, m in zip(vs, links_cummax)], axis=0),
-                'paths': tf.concat([v[0]['paths'] + m for v, m in zip(vs, paths_cummax)], axis=0),
-                'n_links': tf.math.add_n([v[0]['n_links'] for v in vs]),
-                'n_paths': tf.math.add_n([v[0]['n_paths'] for v in vs]),
-                'n_total': tf.math.add_n([v[0]['n_total'] for v in vs])
-            },   tf.concat([v[1] for v in vs], axis=0))
+        tensors = ({'traffic': tf.concat([v[0]['traffic'] for v in vs], axis=0),
+                    'sequences': tf.concat([v[0]['sequences'] for v in vs], axis=0),
+                    'link_capacity': tf.concat([v[0]['link_capacity'] for v in vs], axis=0),
+                    'links': tf.concat([v[0]['links'] + m for v, m in zip(vs, links_cummax)],
+                                       axis=0),
+                    'paths': tf.concat([v[0]['paths'] + m for v, m in zip(vs, paths_cummax)],
+                                       axis=0),
+                    'n_links': tf.math.add_n([v[0]['n_links'] for v in vs]),
+                    'n_paths': tf.math.add_n([v[0]['n_paths'] for v in vs]),
+                    'n_total': tf.math.add_n([v[0]['n_total'] for v in vs])
+                    }, tf.concat([v[1] for v in vs], axis=0))
 
     return tensors
 
@@ -134,11 +135,11 @@ def tfrecord_input_fn(filenames, hparams, shuffle_buf=1000, target='delay'):
     if shuffle_buf:
         ds = ds.apply(tf.contrib.data.shuffle_and_repeat(shuffle_buf))
 
-    ds = ds.map(lambda buf:parse(buf, target), num_parallel_calls=2)
+    ds = ds.map(lambda buf: parse(buf, target), num_parallel_calls=2)
     ds = ds.prefetch(10)
 
-    it = ds.make_one_shot_iterator()
-    sample = transformation_func(it, hparams.batch_size)
+    itrtr = ds.make_one_shot_iterator()
+    sample = transformation_func(itrtr, hparams.batch_size)
 
     return sample
 
@@ -218,18 +219,17 @@ def model_fn(features, labels, mode, params):
                                       )
 
 
-hparams = tf.contrib.training.HParams(
-    link_state_dim=4,
-    path_state_dim=2,
-    T=3,
-    readout_units=8,
-    learning_rate=0.001,
-    batch_size=32,
-    dropout_rate=0.5,
-    l2=0.1,
-    l2_2=0.01,
-    learn_embedding=True  # If false, only the readout is trained
-)
+# TODO this is a global hparams, which should be factored into a non-global variable or class
+hparams = tf.contrib.training.HParams(link_state_dim=4,
+                                      path_state_dim=2,
+                                      T=3,
+                                      readout_units=8,
+                                      learning_rate=0.001,
+                                      batch_size=32,
+                                      dropout_rate=0.5,
+                                      l2=0.1,
+                                      l2_2=0.01,
+                                      learn_embedding=True)  # If false, only the readout is trained
 
 
 def train(parsed_args):
@@ -299,7 +299,8 @@ def make_paths(routing, connections, link_cap):
     for i in range(n):
         for j in range(n):
             if i != j:
-                paths.append([edges.index(tup) for tup in pairwise(gen_path(routing, i, j, connections))])
+                paths.append([edges.index(tup) for tup in pairwise(gen_path(routing, i, j,
+                                                                            connections))])
     return paths, capacities_links
 
 
@@ -324,8 +325,8 @@ def ned2lists(fname):
     connections = [{} for i in range(n)]
     # Shape of connections[node][port] = node connected to
     for c in channels:
-        connections[c[0]][c[1]]=c[2]
-        connections[c[2]][c[3]]=c[0]
+        connections[c[0]][c[1]] = c[2]
+        connections[c[2]][c[3]] = c[0]
     # Connections store an array of nodes where each node position correspond to
     # another array of nodes that are connected to the current node
     connections = [[v for k, v in sorted(con.items())]
@@ -333,21 +334,21 @@ def ned2lists(fname):
     return connections, n, link_cap
 
 
-def get_corresponding_values(posParser, line, n, bws, delays, jitters):
+def get_corresponding_values(pos_parser, line, n, bws, delays, jitters):
     bws.fill(0)
     delays.fill(0)
     jitters.fill(0)
-    it = 0
+    itrtr = 0
     for i in range(n):
         for j in range(n):
             if i != j:
-                delay = posParser.get_delay_ptr(i, j)
-                jitter = posParser.get_jitter_ptr(i, j)
-                traffic = posParser.get_bw_ptr(i, j)
-                bws[it] = float(line[traffic])
-                delays[it] = float(line[delay])
-                jitters[it] = float(line[jitter])
-                it = it + 1
+                delay = pos_parser.get_delay_ptr(i, j)
+                jitter = pos_parser.get_jitter_ptr(i, j)
+                traffic = pos_parser.get_bw_ptr(i, j)
+                bws[itrtr] = float(line[traffic])
+                delays[itrtr] = float(line[delay])
+                jitters[itrtr] = float(line[jitter])
+                itrtr = itrtr + 1
 
 
 def make_tfrecord2(data_dir_path, tf_file, ned_file, routing_file, data_file):

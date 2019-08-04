@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (c) 2019, Paul Almasan [^1], Sergi Carol [^1]
 #
 # [^1]: Universitat Politècnica de Catalunya, Computer Architecture
@@ -18,10 +19,10 @@ if __name__ == '__main__':
     parser.add_argument("--ini", help="Config file")
 
     args = parser.parse_args()
-    limit = 20 # Number of file to sample
+    limit = 20  # Number of file to sample
     delays = []
     traffic = []
-    print("Args dir", args.dir)
+    print('Args dir', args.dir)
     for folder in args.dir:
         f = os.listdir(folder)
         sample = random.sample(f, limit)
