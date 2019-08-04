@@ -15,25 +15,25 @@ from tensorflow import keras
 class ComnetModel(tf.keras.Model):
     def __init__(self, hparams, output_units=1, final_activation=None):
         super(ComnetModel, self).__init__()
-        self._hparams = hparams
+        self.hparams = hparams
 
-        self.edge_update = tf.keras.layers.GRUCell(self._hparams.link_state_dim)
-        self.path_update = tf.keras.layers.GRUCell(self._hparams.path_state_dim)
+        self.edge_update = tf.keras.layers.GRUCell(self.hparams.link_state_dim)
+        self.path_update = tf.keras.layers.GRUCell(self.hparams.path_state_dim)
 
         self.readout = tf.keras.models.Sequential()
 
         self.readout.add(keras.layers.Dense(hparams.readout_units,
                                             activation=tf.nn.selu,
-                                            kernel_regularizer=tf.contrib.layers.l2_regularizer(self._hparams.l2)))
+                                            kernel_regularizer=tf.contrib.layers.l2_regularizer(self.hparams.l2)))
         self.readout.add(keras.layers.Dropout(rate=hparams.dropout_rate))
         self.readout.add(keras.layers.Dense(hparams.readout_units,
                                             activation=tf.nn.selu,
-                                            kernel_regularizer=tf.contrib.layers.l2_regularizer(self._hparams.l2)))
+                                            kernel_regularizer=tf.contrib.layers.l2_regularizer(self.hparams.l2)))
         self.readout.add(keras.layers.Dropout(rate=hparams.dropout_rate))
 
         self.readout.add(keras.layers.Dense(output_units,
                                             kernel_regularizer=
-                                            tf.contrib.layers.l2_regularizer(self._hparams.l2_2),
+                                            tf.contrib.layers.l2_regularizer(self.hparams.l2_2),
                                             activation=final_activation))
 
     def build(self, input_shape=None):
@@ -45,12 +45,12 @@ class ComnetModel(tf.keras.Model):
 
     def call(self, inputs, training=False):
         f_ = inputs
-        shape = tf.stack([f_['n_links'], self.hparams.link_state_dim-1], axis=0)
+        shape = tf.stack([f_['n_links'], self.hparams.link_state_dim - 1], axis=0)
         link_state = tf.concat([
             tf.expand_dims(f_['link_capacity'], axis=1),
             tf.zeros(shape)
         ], axis=1)
-        shape = tf.stack([f_['n_paths'], self.hparams.path_state_dim-1], axis=0)
+        shape = tf.stack([f_['n_paths'], self.hparams.path_state_dim - 1], axis=0)
         path_state = tf.concat([
             tf.expand_dims(f_['traffic'][0:f_['n_paths']], axis=1),
             tf.zeros(shape)
@@ -73,7 +73,7 @@ class ComnetModel(tf.keras.Model):
             outputs, path_state = tf.nn.dynamic_rnn(self.path_update,
                                                     link_inputs,
                                                     sequence_length=lens,
-                                                    initial_state = path_state,
+                                                    initial_state=path_state,
                                                     dtype=tf.float32)
             m = tf.gather_nd(outputs,ids)
             m = tf.math.unsorted_segment_sum(m, links, f_['n_links'])

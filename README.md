@@ -28,7 +28,7 @@ topologies.
  
 ## Description
 In this demo, we extended the original implementation of RouteNet to support different link 
-capacities. The code of RouteNet used in the demo is available on the ['code' directory](src).
+capacities. The code of RouteNet used in the demo is available in the ['src' directory](src).
 
 The following figure shows a schematic representation of the internal architecture of RouteNet. In 
 this implementation, the input per-source/destination traffic is provided in the initial path 

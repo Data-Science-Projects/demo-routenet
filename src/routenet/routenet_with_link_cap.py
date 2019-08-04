@@ -389,8 +389,7 @@ def make_tfrecord2(data_dir_path, tf_file, ned_file, routing_file, data_file):
             'n_links': _int64_feature(n_links),
             'n_paths': _int64_feature(n_paths),
             'n_total': _int64_feature(n_total)
-        }
-        ))
+        }))
 
         writer.write(example.SerializeToString())
     writer.close()
