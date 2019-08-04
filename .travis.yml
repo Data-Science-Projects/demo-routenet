@@ -6,4 +6,4 @@ install:
   - sudo apt-get install pylint
 # command to run tests
 script:
-  - pylint
+  - pylint src/*
