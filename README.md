@@ -1,6 +1,18 @@
-# Challenging the generalization capabilities of Graph Neural Networks for network modeling
-### Demo paper
-#### J. Suárez-Varela, S. Carol-Bosch, K. Rusek, P. Almasan, M. Arias, P. Barlet-Ros, A. Cabellos-Aparicio.
+This fork is the part of the joint 
+[MSc. in AI and Deep Learning](https://master-artificialintelligence.com) dissertation project for 
+[Nathan Sowatskey](https://www.linkedin.com/in/nathansowatskey/) 
+and [Ana Matute](https://www.linkedin.com/in/ana-matute-06330118a/).
+
+The original content is based on the demo paper [Challenging the generalization capabilities of Graph 
+Neural Networks for network modeling](https://github.com/knowledgedefinednetworking/demo-routenet) 
+by J. Suárez-Varela, S. Carol-Bosch, K. Rusek, P. Almasan, M. Arias, P. Barlet-Ros and 
+A. Cabellos-Aparicio.
+
+# Project Structure and Admin
+
+This project has a [Travis Build](https://travis-ci.com/Data-Science-Projects/demo-routenet).
+
+
  
 ## Abstract
 Today, network operators still lack functional network models able to make accurate predictions of 
@@ -24,12 +36,7 @@ The following figure shows a schematic representation of the internal architectu
 this implementation, the input per-source/destination traffic is provided in the initial path 
 states, while the link capacity is added as an input feature in the initial link states.
 
-<p align="center"> 
-  <img src="/assets/routenet_architecture.png" width="700" alt>
-</p>
-<p align="center"> 
-    <em>Internal architecture of RouteNet</em>
-</p>
+![Internal architecture of RouteNet](./assets/routenet_architecture.png)
 
 All the datasets used in the demo are available in the following 
 [repository](https://github.com/knowledgedefinednetworking/NetworkModelingDatasets/tree/master/datasets_v0). This repository includes a detailed description on how to process the datasets.
@@ -49,10 +56,9 @@ per-source/destination delay predictions over arbitrary samples of our datasets
 ## Running RouteNet
 
 In order to facilitate the execution of RouteNet, we provide some example functions in the 
-script **[run_routenet.sh](src/run_routenet.sh)**. This script contains different calls to the 
+script **[run_routenet.sh](./bin/run_routenet.sh)**. This script contains different calls to the 
 RouteNet code (**[routenet_with_link_cap.py](src/routenet/routenet_with_link_cap.py)**). Also, they 
 provide some predefined hyperparameters that can be easily modified in the script.
-
 
 ## 'How to' guide
 First of all, you can prepare the Python environment for the demo executing the following command:
@@ -80,10 +86,16 @@ tar -xvzf synth50.tar.gz
 Note that it is not necessary to download the three datasets to start to play with RouteNet. 
 For instance, you can start using only the NSFNET dataset. 
 
-Then, you may use the script [routenet_with_link_cap.py](src/routenet/routenet_with_link_cap.py) to train a RouteNet model that predicts the per-source/destination delay. First of all, it is necessary to modify the variable 'path_to_datasets' to point to the path where the datasets were stored. This script assumes that all the datasets are stored in a same directory.
+Then, you may use the script [routenet_with_link_cap.py](src/routenet/routenet_with_link_cap.py) 
+to train a RouteNet model that predicts the per-source/destination delay. First of all, it is 
+necessary to modify the variable 'path_to_datasets' to point to the path where the datasets were 
+stored. This script assumes that all the datasets are stored in a same directory.
 
-In order to train RouteNet it is necessary to convert the datasets to the 'TFRecords' format of TensorFlow. Our datasets provide directly the TFRecords files that we used to train and evaluate RouteNet (in the subdirectories 'tfrecords/train' and 'tfrecords/evaluate').
-However, you can also run the following commands to generate the TFRecords files correspondingly for the three different datasets:
+In order to train RouteNet it is necessary to convert the datasets to the 'TFRecords' format of 
+TensorFlow. Our datasets provide directly the TFRecords files that we used to train and evaluate 
+RouteNet (in the subdirectories 'tfrecords/train' and 'tfrecords/evaluate').
+However, you can also run the following commands to generate the TFRecords files correspondingly 
+for the three different datasets:
 
 ```
 ./run_routenet.sh tfrecords nsfnetbw
@@ -91,52 +103,62 @@ However, you can also run the following commands to generate the TFRecords files
 ./run_routenet.sh tfrecords synth50bw
 ```
 
-Now, everything is ready to train a RouteNet model. For instance, you can use the following command to train a model using samples just from one topology:
+Now, everything is ready to train a RouteNet model. For instance, you can use the following command 
+to train a model using samples just from one topology:
 
 ```
 ./run_routenet.sh train nsfnetbw 50000
 ```
 
-In this case, RouteNet is trained over the training datasets of NSFNET and evaluated over the evaluation samples of the same topology. Note that 'nsfnetbw' can be replaced in this command by 'geant2bw' or 'synth50bw' to train the model with the training and evaluation samples of the two other topologies.
+In this case, RouteNet is trained over the training datasets of NSFNET and evaluated over the 
+evaluation samples of the same topology. Note that 'nsfnetbw' can be replaced in this command by 
+'geant2bw' or 'synth50bw' to train the model with the training and evaluation samples of the two 
+other topologies.
 
-This implementation of RouteNet has support to be trained with samples from topologies of variable size. For instance, you can execute the command below to train a model with samples from the NSFNET and the 50-node topology:
+This implementation of RouteNet has support to be trained with samples from topologies of variable 
+size. For instance, you can execute the command below to train a model with samples from the NSFNET 
+and the 50-node topology:
 
 ```
 ./run_routenet.sh train_multiple nsfnetbw synth50bw output_logdir 100000
 ```
 
-By default, the evaluation is done on the entire GEANT2 dataset (train and evaluation TFRecords). However, it can be easily modified
-by setting the paths provided in the '--eval_' flag of the 'train_multiple' function in the script [run_routenet.sh](src/run_routenet.sh).
+By default, the evaluation is done on the entire GEANT2 dataset (train and evaluation TFRecords). 
+However, it can be easily modified by setting the paths provided in the '--eval_' flag of the 
+'train_multiple' function in the script [run_routenet.sh](./bin/run_routenet.sh).
 
 
-Once the training is executed, one may use TensorBoard to observe the evolution of some relevant statistics such as the loss, the evaluation accuracy or the values of the weights and gradients along the training. This may be very helpful to identify some possible issues during the training. To execute Tensorboard you can use the following command:
+Once the training is executed, one may use TensorBoard to observe the evolution of some relevant 
+statistics such as the loss, the evaluation accuracy or the values of the weights and gradients 
+along the training. This may be very helpful to identify some possible issues during the training. 
+To execute Tensorboard you can use the following command:
 
 ```
 tensorboard --logdir <path_to_logs>
 ```
 
-Assuming that you used the training functions provided above, the [run_routenet.sh](src/run_routenet.sh) script stores the output logs in subdirectories within the './CheckPoints/' directory.
+Assuming that you used the training functions provided above, the 
+[run_routenet.sh](./bin/run_routenet.sh) script stores the output logs in subdirectories within 
+the './CheckPoints/' directory.
 
-Then, you can connect in a web browser to 'http://localhost:6006/' and see the logs via a web application.
+Then, you can connect in a web browser to 'http://localhost:6006/' and see the logs via a web 
+application.
 
-As an example, we provide below two figures that show the evolution of the loss (Mean Absolute Error) and the accuracy (Pearson correlation coefficient) of the RouteNet model that is provided in the ['trained_models' directory](trained_models).
+As an example, we provide below two figures that show the evolution of the loss 
+(Mean Absolute Error) and the accuracy (Pearson correlation coefficient) of the RouteNet model 
+that is provided in the ['trained_models' directory](trained_models).
 
-<p align="center"> 
-  <img src="./assets/loss_routenet.jpg" width="700" alt>
-</p>
-<p align="center"> 
-    <em>Loss of the model w.r.t. the training steps</em>
-</p>
+![Loss of the model w.r.t. the training steps](./assets/loss_routenet.jpg)
 
-<p align="center"> 
-  <img src="/assets/accuracy_routenet.jpg" width="700" alt>
-</p>
-<p align="center"> 
-    <em>Pearson correlation coefficient of the model w.r.t. the training steps</em>
-</p>
+![Pearson correlation coefficient of the model w.r.t. the training steps](./assets/accuracy_routenet.jpg)
 
-This model was trained with samples of the 14-node NSFNET and the 50-node topologies, and was evaluated over samples of the Geant2 topology.
+This model was trained with samples of the 14-node NSFNET and the 50-node topologies, 
+and was evaluated over samples of the Geant2 topology.
 
 ## Demo notebook
 
-In order to continue playing with RouteNet, you can follow an interactive Jupyter notebook that we provide in the [demo_notebooks directory](demo_notebooks). Here, we load the RouteNet model in the [trained_models directory](trained_models) to make per-source/destination delay predictions and show some plots that illustrate how we can leverage the delay predictions of RouteNet for network visibility.
+In order to continue playing with RouteNet, you can follow an interactive Jupyter notebook 
+that we provide in the [demo_notebooks directory](demo_notebooks). Here, we load the 
+RouteNet model in the [trained_models directory](trained_models) to make per-source/destination 
+delay predictions and show some plots that illustrate how we can leverage the delay predictions 
+of RouteNet for network visibility.
