@@ -3,12 +3,13 @@
 # [^1]: Universitat Politècnica de Catalunya, Computer Architecture
 #     department, Barcelona, Spain. Email: almasan@ac.upc.edu
 
-import numpy as np
-import os, random
 import argparse
-import tensorflow as tf
 import configparser
+import os
+import random
 
+import numpy as np
+import tensorflow as tf
 
 if __name__ == '__main__':
 
@@ -35,7 +36,7 @@ if __name__ == '__main__':
 
     print('*' * 10)
     print('Delay')
-    print('Mean', round(np.mean(delays),2))
+    print('Mean', round(np.mean(delays), 2))
     print('Std', round(np.std(delays), 2))
     print('*' * 10)
     print('Traffic')
@@ -46,10 +47,11 @@ if __name__ == '__main__':
     config.optionxform = str  # Disable lowercase conversion
     config.read(args.ini)
     if not os.path.exists(args.ini):
-        config['Normalization'] = {'mean_delay': '1', 'std_delay': '1','mean_traffic': '1', 'std_traffic': '1'}
+        config['Normalization'] = {'mean_delay': '1', 'std_delay': '1',
+                                   'mean_traffic': '1', 'std_traffic': '1'}
         config.write(open(args.ini, 'w'))
 
-    config['Normalization']['mean_delay'] = str(round(np.mean(delays),2))
+    config['Normalization']['mean_delay'] = str(round(np.mean(delays), 2))
     config['Normalization']['std_delay'] = str(round(np.std(delays), 2))
     config['Normalization']['mean_traffic'] = str(round(np.mean(traffic), 2))
     config['Normalization']['std_traffic'] = str(round(np.std(traffic), 2))
