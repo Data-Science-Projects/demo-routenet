@@ -3,14 +3,26 @@
 #### J. Suárez-Varela, S. Carol-Bosch, K. Rusek, P. Almasan, M. Arias, P. Barlet-Ros, A. Cabellos-Aparicio.
  
 ## Abstract
-Today, network operators still lack functional network models able to make accurate predictions of end-to-end Key Performance Indicators (e.g., delay or jitter) at limited cost. Recently, a novel Graph Neural Network (GNN) model called RouteNet was proposed as a cost-effective alternative to estimate the per-source/destination pair mean delay and jitter in networks. Thanks to its GNN architecture that operates over graph-structured data, RouteNet revealed an unprecedented ability to learn and model the complex relationships among topology, routing and input traffic in networks. As a result, it was able to make performance predictions with similar accuracy than resource-hungry packet-level simulators even in network scenarios unseen during training. In this demo, we challenge the generalization capabilities of RouteNet with more complex scenarios, including larger topologies.
+Today, network operators still lack functional network models able to make accurate predictions of 
+end-to-end Key Performance Indicators (e.g., delay or jitter) at limited cost. Recently, a novel 
+Graph Neural Network (GNN) model called RouteNet was proposed as a cost-effective alternative to 
+estimate the per-source/destination pair mean delay and jitter in networks. Thanks to its GNN 
+architecture that operates over graph-structured data, RouteNet revealed an unprecedented ability 
+to learn and model the complex relationships among topology, routing and input traffic in networks. 
+As a result, it was able to make performance predictions with similar accuracy than resource-hungry 
+packet-level simulators even in network scenarios unseen during training. In this demo, we challenge 
+the generalization capabilities of RouteNet with more complex scenarios, including larger 
+topologies.
  
 <!-- Add BibTex citation to paper -->
  
 ## Description
-In this demo, we extended the original implementation of RouteNet to support different link capacities. The code of RouteNet used in the demo is available on the ['code' directory](code).
+In this demo, we extended the original implementation of RouteNet to support different link 
+capacities. The code of RouteNet used in the demo is available on the ['code' directory](src).
 
-The following figure shows a schematic representation of the internal architecture of RouteNet. In this implementation, the input per-source/destination traffic is provided in the initial path states, while the link capacity is added as an input feature in the initial link states.
+The following figure shows a schematic representation of the internal architecture of RouteNet. In 
+this implementation, the input per-source/destination traffic is provided in the initial path 
+states, while the link capacity is added as an input feature in the initial link states.
 
 <p align="center"> 
   <img src="/assets/routenet_architecture.png" width="700" alt>
@@ -19,15 +31,27 @@ The following figure shows a schematic representation of the internal architectu
     <em>Internal architecture of RouteNet</em>
 </p>
 
-All the datasets used in the demo are available in the following [repository](https://github.com/knowledgedefinednetworking/NetworkModelingDatasets/tree/master/datasets_v0). This repository includes a detailed description on how to process the datasets.
+All the datasets used in the demo are available in the following 
+[repository](https://github.com/knowledgedefinednetworking/NetworkModelingDatasets/tree/master/datasets_v0). This repository includes a detailed description on how to process the datasets.
  
-Moreover, we provide a RouteNet model already trained (in the ['trained_models' directory](trained_models)) that can be directly loaded to make accurate per-source/destination delay predictions on any sample from our datasets. In particular, this model was trained over 480,000 training samples: 240,000 from the 14-node NSF network topology and 240,000 from a 50-node synthetically-generated topology. You can find more details about the topologies and the training samples used in the [dataset repository](https://github.com/knowledgedefinednetworking/NetworkModelingDatasets/tree/master/datasets_v0).
+Moreover, we provide a RouteNet model already trained 
+(in the ['trained_models' directory](trained_models)) that can be directly loaded to make 
+accurate per-source/destination delay predictions on any sample from our datasets. In particular, 
+this model was trained over 480,000 training samples: 240,000 from the 14-node NSF network topology 
+and 240,000 from a 50-node synthetically-generated topology. You can find more details about the 
+topologies and the training samples used in the 
+[dataset repository](https://github.com/knowledgedefinednetworking/NetworkModelingDatasets/tree/master/datasets_v0).
 
-Lastly, we provide a Jupyter notebook that loads our model already trained and makes per-source/destination delay predictions over arbitrary samples of our datasets (in the [demo_notebooks directory](demo_notebooks)).
+Lastly, we provide a Jupyter notebook that loads our model already trained and makes 
+per-source/destination delay predictions over arbitrary samples of our datasets 
+(in the [demo_notebooks directory](demo_notebooks)).
 
 ## Running RouteNet
 
-In order to facilitate the execution of RouteNet, we provide some example functions in the script **[run_routenet.sh](code/run_routenet.sh)**. This script contains different calls to the RouteNet code (**[routenet_with_link_cap.py](code/routenet_with_link_cap.py)**). Also, they provide some predefined hyperparameters that can be easily modified in the script.
+In order to facilitate the execution of RouteNet, we provide some example functions in the 
+script **[run_routenet.sh](src/run_routenet.sh)**. This script contains different calls to the 
+RouteNet code (**[routenet_with_link_cap.py](src/routenet/routenet_with_link_cap.py)**). Also, they 
+provide some predefined hyperparameters that can be easily modified in the script.
 
 
 ## 'How to' guide
@@ -39,8 +63,10 @@ pip install -r requirements.txt
 
 This command installs all the dependencies needed to execute RouteNet.
 
-To train and evaluate RouteNet it is necessary to download some datasets from the [dataset repository](https://github.com/knowledgedefinednetworking/NetworkModelingDatasets/tree/master/datasets_v0). In this repository you can find three datasets with samples simulated with a custom packet-level simulator in three different topologies: NSFNET (2GB), GEANT2 (6GB)
-and synthetic 50 nodes (28.7GB) topologies. To download and decompress the three datasets you can use the following commands:
+To train and evaluate RouteNet it is necessary to download some datasets from the 
+[dataset repository](https://github.com/knowledgedefinednetworking/NetworkModelingDatasets/tree/master/datasets_v0). In this repository you can find three datasets with samples simulated with a custom packet-level simulator in three different topologies: NSFNET (2GB), GEANT2 (6GB)
+and synthetic 50 nodes (28.7GB) topologies. To download and decompress the three datasets you 
+can use the following commands:
 
 ```
 wget "http://knowledgedefinednetworking.org/data/datasets_v0/nsfnet.tar.gz"
@@ -51,9 +77,10 @@ tar -xvzf geant2.tar.gz
 tar -xvzf synth50.tar.gz
 ```
 
-Note that it is not necessary to download the three datasets to start to play with RouteNet. For instance, you can start using only the NSFNET dataset. 
+Note that it is not necessary to download the three datasets to start to play with RouteNet. 
+For instance, you can start using only the NSFNET dataset. 
 
-Then, you may use the script [routenet_with_link_cap.py](code/routenet_with_link_cap.py) to train a RouteNet model that predicts the per-source/destination delay. First of all, it is necessary to modify the variable 'path_to_datasets' to point to the path where the datasets were stored. This script assumes that all the datasets are stored in a same directory.
+Then, you may use the script [routenet_with_link_cap.py](src/routenet/routenet_with_link_cap.py) to train a RouteNet model that predicts the per-source/destination delay. First of all, it is necessary to modify the variable 'path_to_datasets' to point to the path where the datasets were stored. This script assumes that all the datasets are stored in a same directory.
 
 In order to train RouteNet it is necessary to convert the datasets to the 'TFRecords' format of TensorFlow. Our datasets provide directly the TFRecords files that we used to train and evaluate RouteNet (in the subdirectories 'tfrecords/train' and 'tfrecords/evaluate').
 However, you can also run the following commands to generate the TFRecords files correspondingly for the three different datasets:
@@ -79,7 +106,7 @@ This implementation of RouteNet has support to be trained with samples from topo
 ```
 
 By default, the evaluation is done on the entire GEANT2 dataset (train and evaluation TFRecords). However, it can be easily modified
-by setting the paths provided in the '--eval_' flag of the 'train_multiple' function in the script [run_routenet.sh](code/run_routenet.sh).
+by setting the paths provided in the '--eval_' flag of the 'train_multiple' function in the script [run_routenet.sh](src/run_routenet.sh).
 
 
 Once the training is executed, one may use TensorBoard to observe the evolution of some relevant statistics such as the loss, the evaluation accuracy or the values of the weights and gradients along the training. This may be very helpful to identify some possible issues during the training. To execute Tensorboard you can use the following command:
@@ -88,7 +115,7 @@ Once the training is executed, one may use TensorBoard to observe the evolution 
 tensorboard --logdir <path_to_logs>
 ```
 
-Assuming that you used the training functions provided above, the [run_routenet.sh](code/run_routenet.sh) script stores the output logs in subdirectories within the './CheckPoints/' directory.
+Assuming that you used the training functions provided above, the [run_routenet.sh](src/run_routenet.sh) script stores the output logs in subdirectories within the './CheckPoints/' directory.
 
 Then, you can connect in a web browser to 'http://localhost:6006/' and see the logs via a web application.
 
