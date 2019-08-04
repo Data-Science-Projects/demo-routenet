@@ -22,13 +22,16 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from tensorflow import keras
+
+from routenet.comnet_model import ComnetModel
+from routenet.new_parser import NewParser
+from routenet.tf_utils import _int64_feature, _int64_features, _float_features
 
 
-def genPath(R, s, d, connections):
+def gen_path(routing, s, d, connections):
     while s != d:
         yield s
-        s = connections[s][R[s, d]]
+        s = connections[s][routing[s, d]]
     yield s
 
 
@@ -40,9 +43,9 @@ def pairwise(iterable):
 
 
 def load_routing(routing_file):
-    R = pd.read_csv(routing_file, header=None, index_col=False)
-    R = R.drop([R.shape[0]], axis=1)
-    return R.values
+    routing_df = pd.read_csv(routing_file, header=None, index_col=False)
+    routing_df = routing_df.drop([routing_df.shape[0]], axis=1)
+    return routing_df.values
 
 
 def make_indices(paths):
@@ -58,18 +61,6 @@ def make_indices(paths):
     return link_indices, path_indices, sequ_indices
 
 
-def _int64_feature(value):
-    return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
-
-
-def _int64_features(value):
-    return tf.train.Feature(int64_list=tf.train.Int64List(value=value))
-
-
-def _float_features(value):
-    return tf.train.Feature(float_list=tf.train.FloatList(value=value))
-
-
 def parse(serialized, target='delay'):
     """
     Target is the name of predicted variable
@@ -79,15 +70,15 @@ def parse(serialized, target='delay'):
             features = tf.parse_single_example(
                 serialized,
                 features={
-                    'traffic':tf.VarLenFeature(tf.float32),
-                    target:tf.VarLenFeature(tf.float32),
+                    'traffic': tf.VarLenFeature(tf.float32),
+                    target: tf.VarLenFeature(tf.float32),
                     'link_capacity': tf.VarLenFeature(tf.float32),
                     'links': tf.VarLenFeature(tf.int64),
                     'paths': tf.VarLenFeature(tf.int64),
                     'sequences': tf.VarLenFeature(tf.int64),
-                    'n_links': tf.FixedLenFeature([],tf.int64),
-                    'n_paths': tf.FixedLenFeature([],tf.int64),
-                    'n_total': tf.FixedLenFeature([],tf.int64)
+                    'n_links': tf.FixedLenFeature([], tf.int64),
+                    'n_paths': tf.FixedLenFeature([], tf.int64),
+                    'n_total': tf.FixedLenFeature([], tf.int64)
                 })
             for k in ['traffic', target, 'link_capacity', 'links', 'paths', 'sequences']:
                 features[k] = tf.sparse_tensor_to_dense(features[k])
@@ -111,9 +102,9 @@ def cummax(alist, extractor):
     return cummaxes
 
 
-def transformation_func(it, batch_size=32):
+def transformation_func(itrtr, batch_size=32):
     with tf.name_scope('transformation_func'):
-        vs = [it.get_next() for _ in range(batch_size)]
+        vs = [itrtr.get_next() for _ in range(batch_size)]
 
         links_cummax = cummax(vs, lambda v: v[0]['links'])
         paths_cummax = cummax(vs, lambda v: v[0]['paths'])
@@ -150,85 +141,6 @@ def tfrecord_input_fn(filenames, hparams, shuffle_buf=1000, target='delay'):
     sample = transformation_func(it, hparams.batch_size)
 
     return sample
-
-
-class ComnetModel(tf.keras.Model):
-    def __init__(self, hparams, output_units=1, final_activation=None):
-        super(ComnetModel, self).__init__()
-        self.hparams = hparams
-
-        self.edge_update = tf.keras.layers.GRUCell(hparams.link_state_dim)
-        self.path_update = tf.keras.layers.GRUCell(hparams.path_state_dim)
-
-        self.readout = tf.keras.models.Sequential()
-
-        self.readout.add(keras.layers.Dense(hparams.readout_units,
-                                            activation=tf.nn.selu,
-                                            kernel_regularizer=
-                                            tf.contrib.layers.l2_regularizer(hparams.l2)))
-        self.readout.add(keras.layers.Dropout(rate=hparams.dropout_rate))
-        self.readout.add(keras.layers.Dense(hparams.readout_units,
-                                            activation=tf.nn.selu,
-                                            kernel_regularizer=
-                                            tf.contrib.layers.l2_regularizer(hparams.l2)))
-        self.readout.add(keras.layers.Dropout(rate=hparams.dropout_rate))
-
-        self.readout.add(keras.layers.Dense(output_units,
-                                            kernel_regularizer=
-                                            tf.contrib.layers.l2_regularizer(hparams.l2_2),
-                                            activation=final_activation))
-
-    def build(self, input_shape=None):
-        del input_shape
-        self.edge_update.build(tf.TensorShape([None, self.hparams.path_state_dim]))
-        self.path_update.build(tf.TensorShape([None, self.hparams.link_state_dim]))
-        self.readout.build(input_shape=[None, self.hparams.path_state_dim])
-        self.built = True
-
-    def call(self, inputs, training=False):
-        f_ = inputs
-        shape = tf.stack([f_['n_links'], self.hparams.link_state_dim-1], axis=0)
-        link_state = tf.concat([
-            tf.expand_dims(f_['link_capacity'], axis=1),
-            tf.zeros(shape)
-        ], axis=1)
-        shape = tf.stack([f_['n_paths'], self.hparams.path_state_dim-1], axis=0)
-        path_state = tf.concat([
-            tf.expand_dims(f_['traffic'][0:f_['n_paths']], axis=1),
-            tf.zeros(shape)
-        ], axis=1)
-
-        links = f_['links']
-        paths = f_['paths']
-        seqs = f_['sequences']
-
-        for _ in range(self.hparams.T):
-            h_tild = tf.gather(link_state, links)
-
-            ids=tf.stack([paths, seqs], axis=1)
-            max_len = tf.reduce_max(seqs)+1
-            shape = tf.stack([f_['n_paths'], max_len, self.hparams.link_state_dim])
-            lens = tf.math.segment_sum(data=tf.ones_like(paths),
-                                       segment_ids=paths)
-
-            link_inputs = tf.scatter_nd(ids, h_tild, shape)
-            outputs, path_state = tf.nn.dynamic_rnn(self.path_update,
-                                                    link_inputs,
-                                                    sequence_length=lens,
-                                                    initial_state = path_state,
-                                                    dtype=tf.float32)
-            m = tf.gather_nd(outputs,ids)
-            m = tf.math.unsorted_segment_sum(m, links, f_['n_links'])
-
-            # Keras cell expects a list
-            link_state, _ = self.edge_update(m, [link_state])
-
-        if self.hparams.learn_embedding:
-            r = self.readout(path_state, training=training)
-        else:
-            r = self.readout(tf.stop_gradient(path_state), training=training)
-
-        return r
 
 
 def model_fn(features, labels, mode, params):
@@ -320,12 +232,12 @@ hparams = tf.contrib.training.HParams(
 )
 
 
-def train(args):
-    print(args)
+def train(parsed_args):
+    print(parsed_args)
     tf.logging.set_verbosity('INFO')
 
-    if args.hparams:
-        hparams.parse(args.hparams)
+    if parsed_args.hparams:
+        hparams.parse(parsed_args.hparams)
 
     my_checkpointing_config = tf.estimator.RunConfig(
         save_checkpoints_secs=10*60,  # Save checkpoints every 10 minutes
@@ -362,17 +274,17 @@ def extract_links(n, connections, link_cap):
     for a, c in zip(A, connections):
         a[c] = 1
 
-    G = nx.from_numpy_array(A, create_using=nx.DiGraph())
-    edges = list(G.edges)
+    graph = nx.from_numpy_array(A, create_using=nx.DiGraph())
+    edges = list(graph.edges)
     capacities_links = []
     # The edges 0-2 or 2-0 can exist. They are duplicated (up and down) and they must have same
     # capacity.
-    for e in edges:
-        if str(e[0])+':'+str(e[1]) in link_cap:
-            capacity = link_cap[str(e[0])+':'+str(e[1])]
+    for edge in edges:
+        if str(edge[0])+':'+str(edge[1]) in link_cap:
+            capacity = link_cap[str(edge[0])+':'+str(edge[1])]
             capacities_links.append(capacity)
-        elif str(e[1])+':'+str(e[0]) in link_cap:
-            capacity = link_cap[str(e[1])+':'+str(e[0])]
+        elif str(edge[1])+':'+str(edge[0]) in link_cap:
+            capacity = link_cap[str(edge[1])+':'+str(edge[0])]
             capacities_links.append(capacity)
         else:
             print("ERROR IN THE DATASET!")
@@ -380,40 +292,15 @@ def extract_links(n, connections, link_cap):
     return edges, capacities_links
 
 
-def make_paths(R, connections, link_cap):
-    n = R.shape[0]
+def make_paths(routing, connections, link_cap):
+    n = routing.shape[0]
     edges, capacities_links = extract_links(n, connections, link_cap)
     paths = []
     for i in range(n):
         for j in range(n):
             if i != j:
-                paths.append([edges.index(tup) for tup in pairwise(genPath(R, i, j, connections))])
+                paths.append([edges.index(tup) for tup in pairwise(gen_path(routing, i, j, connections))])
     return paths, capacities_links
-
-
-class NewParser:
-    netSize = 0
-    offsetDelay = 0
-    hasPacketGen = True
-
-    def __init__(self, netSize):
-        self.netSize = netSize
-        self.offsetDelay = netSize*netSize*3
-
-    def getBwPtr(self, src, dst):
-        return (src*self.netSize + dst)*3
-
-    def getGenPcktPtr(self, src, dst):
-        return (src*self.netSize + dst)*3 + 1
-
-    def getDropPcktPtr(self, src, dst):
-        return (src*self.netSize + dst)*3 + 2
-
-    def getDelayPtr(self, src, dst):
-        return self.offsetDelay + (src*self.netSize + dst)*7
-
-    def getJitterPtr(self, src, dst):
-        return self.offsetDelay + (src*self.netSize + dst)*7 + 6
 
 
 def ned2lists(fname):
@@ -424,13 +311,13 @@ def ned2lists(fname):
         for line in f:
             m = p.match(line)
             if m:
-                auxList = []
-                it = 0
+                aux_list = []
+                elem_cntr = 0
                 for elem in list(map(int, m.groups())):
-                    if it != 2:
-                        auxList.append(elem)
-                    it = it + 1
-                channels.append(auxList)
+                    if elem_cntr != 2:
+                        aux_list.append(elem)
+                    elem_cntr = elem_cntr + 1
+                channels.append(aux_list)
                 link_cap[(m.groups()[0])+':'+str(m.groups()[3])] = int(m.groups()[2])
 
     n = max(map(max, channels))+1
@@ -454,21 +341,21 @@ def get_corresponding_values(posParser, line, n, bws, delays, jitters):
     for i in range(n):
         for j in range(n):
             if i != j:
-                delay = posParser.getDelayPtr(i, j)
-                jitter = posParser.getJitterPtr(i, j)
-                traffic = posParser.getBwPtr(i, j)
+                delay = posParser.get_delay_ptr(i, j)
+                jitter = posParser.get_jitter_ptr(i, j)
+                traffic = posParser.get_bw_ptr(i, j)
                 bws[it] = float(line[traffic])
                 delays[it] = float(line[delay])
                 jitters[it] = float(line[jitter])
                 it = it + 1
 
 
-def make_tfrecord2(directory, tf_file, ned_file, routing_file, data_file):
+def make_tfrecord2(data_dir_path, tf_file, ned_file, routing_file, data_file):
     con, n, link_cap = ned2lists(ned_file)
-    posParser = NewParser(n)
+    pos_parser = NewParser(n)
 
-    R = load_routing(routing_file)
-    paths, link_capacities = make_paths(R, con, link_cap)
+    routing = load_routing(routing_file)
+    paths, link_capacities = make_paths(routing, con, link_cap)
 
     n_paths = len(paths)
     n_links = max(max(paths)) + 1
@@ -476,7 +363,7 @@ def make_tfrecord2(directory, tf_file, ned_file, routing_file, data_file):
     d = np.zeros(n_paths)
     j = np.zeros(n_paths)
 
-    tfrecords_dir = directory+'tfrecords/'
+    tfrecords_dir = data_dir_path+'tfrecords/'
 
     if not os.path.exists(tfrecords_dir):
         os.makedirs(tfrecords_dir)
@@ -488,7 +375,7 @@ def make_tfrecord2(directory, tf_file, ned_file, routing_file, data_file):
 
     for line in data_file:
         line = line.decode().split(',')
-        get_corresponding_values(posParser, line, n, a, d, j)
+        get_corresponding_values(pos_parser, line, n, a, d, j)
 
         example = tf.train.Example(features=tf.train.Features(feature={
             'traffic': _float_features(a),
@@ -508,38 +395,45 @@ def make_tfrecord2(directory, tf_file, ned_file, routing_file, data_file):
     writer.close()
 
 
-def data(args):
-    directory = args.d[0]
-    nodes_dir = directory.split('/')[-1]
+def data(parsed_args):
+    directory = parsed_args.d[0]
+    process_data(directory)
+
+
+def process_data(data_dir_path):
+    # The directory is assumed to have a trailing '/', so make sure it does. It does not
+    # matter if there are two, it does matter if there is not one at all.
+    data_dir_path = data_dir_path + '/'
+    nodes_dir = data_dir_path.split('/')[-1]
     if nodes_dir == '':
-        nodes_dir = directory.split('/')[-2]
+        nodes_dir = data_dir_path.split('/')[-2]
 
     ned_file = ''
     if nodes_dir == 'geant2bw':
-        ned_file = directory+'Network_geant2bw.ned'
+        ned_file = data_dir_path+'Network_geant2bw.ned'
     elif nodes_dir == 'synth50bw':
-        ned_file = directory+'Network_synth50bw.ned'
+        ned_file = data_dir_path+'Network_synth50bw.ned'
     elif nodes_dir == 'nsfnetbw':
-        ned_file = directory+'Network_nsfnetbw.ned'
+        ned_file = data_dir_path+'Network_nsfnetbw.ned'
 
-    for filename in os.listdir(directory):
+    for filename in os.listdir(data_dir_path):
         if filename.endswith('.tar.gz'):
             print(filename)
             tf_file = filename.split('.')[0]+'.tfrecords'
-            tar = tarfile.open(directory+filename, 'r:gz')
+            tar = tarfile.open(data_dir_path+filename, 'r:gz')
 
             dir_info = tar.next()
             if not dir_info.isdir():
                 print('Tar file with wrong format')
-                exit()
+                exit(1)
 
             delay_file = tar.extractfile(dir_info.name + '/simulationResults.txt')
             routing_file = tar.extractfile(dir_info.name + '/Routing.txt')
 
             tf.logging.info('Starting ', delay_file)
-            make_tfrecord2(directory, tf_file, ned_file, routing_file, delay_file)
+            make_tfrecord2(data_dir_path, tf_file, ned_file, routing_file, delay_file)
 
-    directory_tfr = directory+'tfrecords/'
+    directory_tfr = data_dir_path+'tfrecords/'
 
     tfr_train = directory_tfr+'train/'
     tfr_eval = directory_tfr+'evaluate/'
