@@ -63,7 +63,7 @@ class ComnetModel(tf.keras.Model):
         for _ in range(self.hparams.T):
             h_tild = tf.gather(link_state, links)
 
-            ids=tf.stack([paths, seqs], axis=1)
+            ids = tf.stack([paths, seqs], axis=1)
             max_len = tf.reduce_max(seqs)+1
             shape = tf.stack([f_['n_paths'], max_len, self.hparams.link_state_dim])
             lens = tf.math.segment_sum(data=tf.ones_like(paths),
@@ -75,7 +75,7 @@ class ComnetModel(tf.keras.Model):
                                                     sequence_length=lens,
                                                     initial_state=path_state,
                                                     dtype=tf.float32)
-            m = tf.gather_nd(outputs,ids)
+            m = tf.gather_nd(outputs, ids)
             m = tf.math.unsorted_segment_sum(m, links, f_['n_links'])
 
             # Keras cell expects a list
