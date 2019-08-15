@@ -4,5 +4,8 @@ python:
 install:
   - pip install -r requirements.txt
   - pip install pylint
+  - pip install pytest
+env: PYTHONPATH=./src:.
 script:
   - pylint src/*
+  - pytest tests
