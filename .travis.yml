@@ -8,4 +8,4 @@ install:
 env: PYTHONPATH=./src:.
 script:
   - pylint src/*
-  - pytest tests
+  - pytest tests/unit

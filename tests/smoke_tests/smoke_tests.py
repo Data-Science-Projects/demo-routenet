@@ -10,10 +10,10 @@ import unittest
 import numpy as np
 import tensorflow as tf
 
-import routenet.tfrecords
-from routenet import train
-from routenet.comnet_model import ComnetModel
-from routenet.dataset_utils import read_dataset
+import routenet.data_utils.tfrecord_utils
+from routenet.data_utils.tfrecord_utils import read_dataset
+from routenet.model.comnet_model import ComnetModel
+from routenet.train import train
 
 
 class SmokeTest(unittest.TestCase):
@@ -36,7 +36,8 @@ class SmokeTest(unittest.TestCase):
     random.seed(13)
 
     def do_test_tfrecords(self, data_set_name):
-        routenet.tfrecords.process_data(data_dir_path=self.data_dir_root + data_set_name)
+        routenet.data_utils.tfrecord_utils.process_data(network_data_dir=self.data_dir_root +
+                                                                         data_set_name)
         test_dirs = glob.glob(self.data_dir_root+data_set_name+'/tfrecords/*')
         assert self.data_dir_root+data_set_name+'/tfrecords/evaluate' in test_dirs
         assert self.data_dir_root+data_set_name+'/tfrecords/train' in test_dirs
@@ -44,7 +45,7 @@ class SmokeTest(unittest.TestCase):
     def test_1_nsfnetbw_tfrecords(self):
         data_set_name = 'nsfnetbw'
         self.do_test_tfrecords(data_set_name)
-
+    """
     def test_1_geant2bw_tfrecords(self):
         data_set_name = 'geant2bw'
         self.do_test_tfrecords(data_set_name)
@@ -52,7 +53,7 @@ class SmokeTest(unittest.TestCase):
     def test_1_synth50bw_tfrecords(self):
         data_set_name = 'synth50bw'
         self.do_test_tfrecords(data_set_name)
-
+    """
     def do_train(self, data_set_name):
         train_files_list = glob.glob(self.data_dir_root + data_set_name +
                                      '/tfrecords/train/*.tfrecords')
@@ -71,12 +72,13 @@ class SmokeTest(unittest.TestCase):
     def test_2_nsfnetbw_train(self):
         self.do_train('nsfnetbw')
 
+    """
     def test_2_geant2bw_train(self):
         self.do_train('geant2bw')
 
     def test_2_synth50bw_train(self):
         self.do_train('synth50bw')
-
+    """
     def do_predict(self, data_set_name):
 
         # Path to downloaded datasets
@@ -127,12 +129,13 @@ class SmokeTest(unittest.TestCase):
     def test_3_nsfnetbw_predict(self):
         self.do_predict('nsfnetbw')
 
+    """
     def test_3_geant2bw_predict(self):
         self.do_predict('geant2bw')
 
     def test_3_synth50bw_predict(self):
         self.do_predict('synth50bw')
-
+    """
     @classmethod
     def do_teardown(cls, data_set_name):
         shutil.rmtree(cls.data_dir_root + '/../CheckPoints/' + data_set_name,

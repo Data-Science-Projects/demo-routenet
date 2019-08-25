@@ -14,9 +14,44 @@ import argparse
 
 import tensorflow as tf
 
-from routenet.comnet_model import ComnetModel
-from routenet.dataset_utils import parse
-from routenet.tfrecords import data
+import routenet.data_utils.tfrecord_utils as tfr_utils
+from routenet.model.comnet_model import ComnetModel
+
+
+def process_train(model_hparams,
+                  model_dir,
+                  train_files,
+                  shuffle_buf,
+                  target,
+                  train_steps,
+                  eval_files,
+                  warm_start_from):
+    my_checkpointing_config = tf.estimator.RunConfig(
+        save_checkpoints_secs=10 * 60,  # Save checkpoints every 10 minutes
+        keep_checkpoint_max=20  # Retain the 10 most recent checkpoints.
+    )
+
+    estimator = tf.estimator.Estimator(model_fn=model_fn,
+                                       model_dir=model_dir,
+                                       params=model_hparams,
+                                       warm_start_from=warm_start_from,
+                                       config=my_checkpointing_config)
+
+    train_spec = tf.estimator.TrainSpec(input_fn=
+                                        lambda: tfrecord_input_fn(filenames=train_files,
+                                                                  hparams=model_hparams,
+                                                                  shuffle_buf=shuffle_buf,
+                                                                  target=target),
+                                        max_steps=train_steps)
+
+    eval_spec = tf.estimator.EvalSpec(input_fn=
+                                      lambda: tfrecord_input_fn(filenames=eval_files,
+                                                                hparams=model_hparams,
+                                                                shuffle_buf=None,
+                                                                target=target),
+                                      throttle_secs=10 * 60)
+
+    tf.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
 
 
 def cummax(alist, extractor):
@@ -62,7 +97,7 @@ def tfrecord_input_fn(filenames, hparams, shuffle_buf=1000, target='delay'):
     if shuffle_buf:
         ds = ds.apply(tf.contrib.data.shuffle_and_repeat(shuffle_buf))
 
-    ds = ds.map(lambda buf: parse(buf, target), num_parallel_calls=2)
+    ds = ds.map(lambda buf: tfr_utils.parse(buf, target), num_parallel_calls=2)
     ds = ds.prefetch(10)
 
     itrtr = ds.make_one_shot_iterator()
@@ -181,53 +216,11 @@ def train(parsed_args):
                   warm_start_from=args.warm)
 
 
-def process_train(model_hparams,
-                  model_dir,
-                  train_files,
-                  shuffle_buf,
-                  target,
-                  train_steps,
-                  eval_files,
-                  warm_start_from):
-
-    my_checkpointing_config = tf.estimator.RunConfig(
-        save_checkpoints_secs=10*60,  # Save checkpoints every 10 minutes
-        keep_checkpoint_max=20  # Retain the 10 most recent checkpoints.
-    )
-    
-
-    estimator = tf.estimator.Estimator(model_fn=model_fn,
-                                       model_dir=model_dir,
-                                       params=model_hparams,
-                                       warm_start_from=warm_start_from,
-                                       config=my_checkpointing_config)
-
-    train_spec = tf.estimator.TrainSpec(input_fn=
-                                        lambda: tfrecord_input_fn(filenames=train_files,
-                                                                  hparams=model_hparams,
-                                                                  shuffle_buf=shuffle_buf,
-                                                                  target=target),
-                                        max_steps=train_steps)
-
-    eval_spec = tf.estimator.EvalSpec(input_fn=
-                                      lambda: tfrecord_input_fn(filenames=eval_files,
-                                                                hparams=model_hparams,
-                                                                shuffle_buf=None,
-                                                                target=target),
-                                      throttle_secs=10*60)
-
-    tf.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='RouteNet: a Graph Neural Network '
                                                  'model for computer network modeling')
 
     subparsers = parser.add_subparsers(help='sub-command help')
-    parser_data = subparsers.add_parser('data', help='data processing')
-    parser_data.add_argument('-d', help='data file', type=str, required=True, nargs='+')
-    parser_data.set_defaults(func=data)
-
     parser_train = subparsers.add_parser('train', help='Train options')
     parser_train.add_argument('--hparams', type=str, help='Comma separated list of '
                                                           '"name=value" pairs.')

@@ -55,7 +55,7 @@ per-source/destination delay predictions over arbitrary samples of our datasets
 
 In order to facilitate the execution of RouteNet, we provide some example functions in the 
 script **[run_routenet.sh](./bin/run_routenet.sh)**. This script contains different calls to the 
-RouteNet code (**[routenet_with_link_cap.py](src/routenet/train.py)**). Also, they 
+RouteNet code (**[routenet_with_link_cap.py](src/routenet/train/train.py)**). Also, they 
 provide some predefined hyperparameters that can be easily modified in the script.
 
 ## 'How to' guide
@@ -84,7 +84,7 @@ tar -xvzf synth50.tar.gz
 Note that it is not necessary to download the three datasets to start to play with RouteNet. 
 For instance, you can start using only the NSFNET dataset. 
 
-Then, you may use the script [routenet_with_link_cap.py](src/routenet/train.py) 
+Then, you may use the script [routenet_with_link_cap.py](src/routenet/train/train.py) 
 to train a RouteNet model that predicts the per-source/destination delay. First of all, it is 
 necessary to modify the variable 'path_to_datasets' to point to the path where the datasets were 
 stored. This script assumes that all the datasets are stored in a same directory.
