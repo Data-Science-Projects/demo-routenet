@@ -356,23 +356,23 @@ def parse(serialized, target='delay'):
     with tf.device('/cpu:0'):
         with tf.name_scope('parse'):
             features = tf.io.parse_single_example(serialized,
-                                                  features={'traffic': tf.VarLenFeature(tf.float32),
-                                                            target: tf.VarLenFeature(tf.float32),
-                                                            'link_capacity': tf.VarLenFeature(
+                                                  features={'traffic': tf.io.VarLenFeature(tf.float32),
+                                                            target: tf.io.VarLenFeature(tf.float32),
+                                                            'link_capacity': tf.io.VarLenFeature(
                                                                 tf.float32),
-                                                            'links': tf.VarLenFeature(tf.int64),
-                                                            'paths': tf.VarLenFeature(tf.int64),
-                                                            'sequences': tf.VarLenFeature(tf.int64),
-                                                            'n_links': tf.FixedLenFeature([],
+                                                            'links': tf.io.VarLenFeature(tf.int64),
+                                                            'paths': tf.io.VarLenFeature(tf.int64),
+                                                            'sequences': tf.io.VarLenFeature(tf.int64),
+                                                            'n_links': tf.io.FixedLenFeature([],
                                                                                           tf.int64),
-                                                            'n_paths': tf.FixedLenFeature([],
+                                                            'n_paths': tf.io.FixedLenFeature([],
                                                                                           tf.int64),
-                                                            'n_total': tf.FixedLenFeature([],
+                                                            'n_total': tf.io.FixedLenFeature([],
                                                                                           tf.int64)})
 
             for k in ['traffic', target, 'link_capacity', 'links', 'paths', 'sequences']:
                 # TODO why is this being applied?
-                features[k] = tf.sparse_tensor_to_dense(features[k])
+                features[k] = tf.sparse.to_dense(features[k])
                 if k == 'delay':
                     features[k] = (features[k] - 0.37) / 0.54
                 if k == 'traffic':
@@ -387,6 +387,5 @@ def read_dataset(filename, target='delay'):
     ds = tf.data.TFRecordDataset(filename)
     ds = ds.map(lambda buf: parse(buf, target=target))
     ds = ds.batch(1)
-    it = ds.make_initializable_iterator()
 
-    return it
+    return ds

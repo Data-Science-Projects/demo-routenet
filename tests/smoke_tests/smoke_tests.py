@@ -3,6 +3,7 @@ __copyright__ = 'Copyright 2019 Nathan Sowatskey, Ana Matute. All rights reserve
 __author__ = 'nsowatsk@cisco.com'
 
 import glob
+import os
 import random
 import shutil
 import unittest
@@ -15,12 +16,14 @@ from routenet.data_utils.tfrecord_utils import read_dataset
 from routenet.model.comnet_model import ComnetModel
 from routenet.train import train
 
+TEST_CODE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 class SmokeTest(unittest.TestCase):
 
     # TODO use environment variable for data dir
     
-    data_dir_root = '../smoke-resources/data/'
+    data_dir_root = TEST_CODE_DIR + '/../smoke-resources/data/'
     
     default_hparams = tf.contrib.training.HParams(link_state_dim=32,
                                                   path_state_dim=32,

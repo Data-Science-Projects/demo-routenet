@@ -10,6 +10,8 @@ import tensorflow as tf
 
 import routenet.data_utils.tfrecord_utils as tfr_utils
 
+TEST_CODE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 class TFRecordsTest(unittest.TestCase):
 
@@ -26,10 +28,10 @@ class TFRecordsTest(unittest.TestCase):
     link_indices, path_indices, sequ_indices = [], [], []
     result_data = []
     rslt_pos_gnrtr = None
-    tf_rcrds_fl_nm = '../unit-resources/test_results.tfrecords'
+    tf_rcrds_fl_nm = TEST_CODE_DIR + '/../unit-resources/test_results.tfrecords'
 
     def test_1_ned2lists(self):
-        ned_file_name = '../unit-resources/Network_nsfnetbw.ned'
+        ned_file_name = TEST_CODE_DIR + '/../unit-resources/Network_nsfnetbw.ned'
         self.__class__.connections, self.__class__.num_nodes, self.__class__.link_capacity_dict = \
             tfr_utils.ned2lists(ned_file_name)
         assert (self.__class__.num_nodes == 14)
@@ -46,7 +48,7 @@ class TFRecordsTest(unittest.TestCase):
                                                       '10:13': 10, '11:12': 10})
 
     def test_2_load_routing(self):
-        routing_file = '../unit-resources/Routing.txt'
+        routing_file = TEST_CODE_DIR + '/../unit-resources/Routing.txt'
         routing_expected = np.array([[-1, 0, 2, 1, 1, 2, 1, 0, 1, 1, 0, 1, 2, 2],
                                      [0, -1, 1, 0, 2, 1, 2, 2, 0, 2, 2, 2, 1, 1],
                                      [0, 1, -1, 0, 2, 2, 2, 1, 0, 2, 2, 2, 2, 2],
@@ -121,7 +123,7 @@ class TFRecordsTest(unittest.TestCase):
     def test_5_get_corresponding_values(self):
         self.__class__.rslt_pos_gnrtr = \
             tfr_utils.ResultsPositionGenerator(self.__class__.num_nodes)
-        with open('../unit-resources/simulationResult.txt') as result_file:
+        with open(TEST_CODE_DIR + '/../unit-resources/simulationResult.txt') as result_file:
             for rslt_data in result_file:
                 self.__class__.result_data = rslt_data.split(',')
                 self.__class__.traffic_bw_txs, self.__class__.delays, self.__class__.jitters = \
@@ -293,7 +295,7 @@ class TFRecordsTest(unittest.TestCase):
         num_paths = len(self.__class__.paths)
         num_links = max(max(self.__class__.paths)) + 1
         n_total = len(self.__class__.path_indices)
-        tf_rcrd_wrtr = tf.python_io.TFRecordWriter(self.tf_rcrds_fl_nm)
+        tf_rcrd_wrtr = tf.io.TFRecordWriter(self.tf_rcrds_fl_nm)
 
         tfr_utils.write_tfrecord(self.__class__.result_data,
                                  self.__class__.rslt_pos_gnrtr,
@@ -311,7 +313,9 @@ class TFRecordsTest(unittest.TestCase):
 
     def test_8_read_dataset(self):
         with tf.compat.v1.Session() as sess:
-            itrtr = tfr_utils.read_dataset(self.tf_rcrds_fl_nm)
+            data_set = tfr_utils.read_dataset(self.tf_rcrds_fl_nm)
+            # TODO https://stackoverflow.com/questions/57725172/iterating-over-a-dataset-tf-2-0-with-for-loop
+            itrtr = data_set.make_initializable_iterator()
             sess.run(itrtr.initializer)
             features, label = itrtr.get_next()
             features_keys = features.keys()
