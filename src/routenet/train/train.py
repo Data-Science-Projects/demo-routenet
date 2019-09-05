@@ -10,22 +10,21 @@
 
 from __future__ import print_function
 
-import argparse
-
 import tensorflow as tf
 
 import routenet.data_utils.tfrecord_utils as tfr_utils
-from routenet.model.comnet_model import ComnetModel
+from routenet.model.routenet_model import RouteNetModel
 
 
-def process_train(model_hparams,
-                  model_dir,
-                  train_files,
-                  shuffle_buf,
-                  target,
-                  train_steps,
-                  eval_files,
-                  warm_start_from):
+def train_and_evaluate(model_dir,
+                       train_files,
+                       shuffle_buf,
+                       target,
+                       train_steps,
+                       eval_files,
+                       warm_start_from,
+                       model_hparams=RouteNetModel.default_hparams):
+
     my_checkpointing_config = tf.estimator.RunConfig(
         save_checkpoints_secs=10 * 60,  # Save checkpoints every 10 minutes
         keep_checkpoint_max=20  # Retain the 10 most recent checkpoints.
@@ -116,7 +115,7 @@ def model_fn(features, labels, mode, params):
     :return: TBD
     """
 
-    model = ComnetModel(params)
+    model = RouteNetModel(params)
     model.build()
 
     def fn(x):
@@ -163,10 +162,14 @@ def model_fn(features, labels, mode, params):
     summaries += [tf.summary.histogram(g.op.name, g) for g in grads if g is not None]
 
     decayed_lr = tf.train.exponential_decay(params.learning_rate,
-                                            tf.train.get_global_step(), 82000,
-                                            0.8, staircase=True)
+                                            tf.train.get_global_step(),
+                                            82000,
+                                            0.8,
+                                            staircase=True)
+
     optimizer = tf.train.AdamOptimizer(decayed_lr)
     update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+
     with tf.control_dependencies(update_ops):
         train_op = optimizer.apply_gradients(grad_var_pairs, global_step=tf.train.get_global_step())
 
@@ -176,66 +179,4 @@ def model_fn(features, labels, mode, params):
     return tf.estimator.EstimatorSpec(mode,
                                       loss=loss,
                                       train_op=train_op,
-                                      training_hooks=[logging_hook]
-                                      )
-
-
-
-# TODO this is a global hparams, which should be factored into a non-global variable or class. These
-# are not the same as the values passed in for training, or those used in the demo notebook. This
-# needs to be redone.
-
-default_hparams = tf.contrib.training.HParams(link_state_dim=32,
-                                              path_state_dim=32,
-                                              T=8,
-                                              readout_units=256,
-                                              learning_rate=0.001,
-                                              batch_size=32,
-                                              dropout_rate=0.5,
-                                              l2=0.1,
-                                              l2_2=0.01,
-                                              learn_embedding=True)  # If false, only the readout is trained
-
-
-def train(parsed_args):
-    print(parsed_args)
-    tf.logging.set_verbosity('INFO')
-
-    if parsed_args.hparams:
-        default_hparams.parse(parsed_args.hparams)
-
-    print('args:', args)    
-
-    process_train(model_hparams=default_hparams,
-                  model_dir=args.model_dir,
-                  train_files=args.train,
-                  shuffle_buf=args.shuffle_buf,
-                  target=args.target,
-                  train_steps=args.train_steps,
-                  eval_files=args.eval_,
-                  warm_start_from=args.warm)
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='RouteNet: a Graph Neural Network '
-                                                 'model for computer network modeling')
-
-    subparsers = parser.add_subparsers(help='sub-command help')
-    parser_train = subparsers.add_parser('train', help='Train options')
-    parser_train.add_argument('--hparams', type=str, help='Comma separated list of '
-                                                          '"name=value" pairs.')
-    parser_train.add_argument('--train', help='Train Tfrecords files', type=str, nargs='+')
-    parser_train.add_argument('--eval_', help='Evaluation Tfrecords files', type=str, nargs='+')
-    parser_train.add_argument('--model_dir', help='Model directory', type=str)
-    parser_train.add_argument('--train_steps', help='Training steps', type=int, default=100)
-    parser_train.add_argument('--eval_steps', help='Evaluation steps, defaul None= all',
-                              type=int, default=None)
-    parser_train.add_argument('--shuffle_buf', help="Buffer size for samples shuffling",
-                              type=int, default=10000)
-    parser_train.add_argument('--target', help="Predicted variable", type=str, default='delay')
-    parser_train.add_argument('--warm', help="Warm start from", type=str, default=None)
-    parser_train.set_defaults(func=train)
-    parser_train.set_defaults(name="Train")
-
-    args = parser.parse_args()
-    args.func(args)
+                                      training_hooks=[logging_hook])

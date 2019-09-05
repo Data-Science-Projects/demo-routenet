@@ -8,13 +8,30 @@
 #     department, Barcelona, Spain. Email: almasan@ac.upc.edu
 
 
+import sys
+
 import tensorflow as tf
 from tensorflow import keras
 
 
-class ComnetModel(tf.keras.Model):
-    def __init__(self, hparams, output_units=1, final_activation=None):
-        super(ComnetModel, self).__init__()
+class RouteNetModel(tf.keras.Model):
+    # TODO These parameters are NOT the same as the original code, but are the same as those
+    # used in the demo notebook. It is not clear which parameters were used elsewhere in the
+    # original data pipeline.
+
+    default_hparams = tf.contrib.training.HParams(link_state_dim=32,
+                                                  path_state_dim=32,
+                                                  T=8,
+                                                  readout_units=256,
+                                                  learning_rate=0.001,
+                                                  batch_size=32,
+                                                  dropout_rate=0.5,
+                                                  l2=0.1,
+                                                  l2_2=0.01,
+                                                  learn_embedding=True)  # If false, only the readout is trained
+
+    def __init__(self, hparams=default_hparams, output_units=1, final_activation=None):
+        super(RouteNetModel, self).__init__()
         self.hparams = hparams
 
         self.edge_update = tf.keras.layers.GRUCell(self.hparams.link_state_dim)
@@ -44,6 +61,8 @@ class ComnetModel(tf.keras.Model):
         self.built = True
 
     def call(self, inputs, training=False):
+        print('******** in call ******************', file=sys.stderr)
+
         f_ = inputs
         shape = tf.stack([f_['n_links'], self.hparams.link_state_dim - 1], axis=0)
         link_state = tf.concat([
@@ -82,8 +101,8 @@ class ComnetModel(tf.keras.Model):
             link_state, _ = self.edge_update(m, [link_state])
 
         if self.hparams.learn_embedding:
-            r = self.readout(path_state, training=training)
+            readout = self.readout(path_state, training=training)
         else:
-            r = self.readout(tf.stop_gradient(path_state), training=training)
+            readout = self.readout(tf.stop_gradient(path_state), training=training)
 
-        return r
+        return readout
