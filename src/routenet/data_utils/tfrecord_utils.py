@@ -7,6 +7,9 @@
 # [^2]: Universitat Politècnica de Catalunya, Computer Architecture
 #     department, Barcelona, Spain. Email: almasan@ac.upc.edu
 
+"""
+Utilities to transform the data produced by the OMNeT++ network simulator into TF Records.
+"""
 
 import glob
 import itertools as it
@@ -200,8 +203,8 @@ def ned2lists(ned_file_name):
                 # The key in the link_capacity_dict is, based on the example above, 0:1, as in
                 # node0:node1, and the value is 10, as in Channel10kbps.
                 link_capacity_dict[
-                    (connection_line.groups()[0]) + ':' + str(connection_line.groups()[3])] = int(
-                    connection_line.groups()[2])
+                    (connection_line.groups()[0]) + ':' + str(connection_line.groups()[3])] = \
+                    int(connection_line.groups()[2])
 
     # Find the largest node number in the channels, and add one to get the number of nodes
     num_nodes = max(map(max, channels)) + 1
@@ -436,11 +439,11 @@ def parse(serialized, target='delay'):
                                                             'paths': tf.io.VarLenFeature(tf.int64),
                                                             'sequences': tf.io.VarLenFeature(tf.int64),
                                                             'n_links': tf.io.FixedLenFeature([],
-                                                                                          tf.int64),
+                                                                                             tf.int64),
                                                             'n_paths': tf.io.FixedLenFeature([],
-                                                                                          tf.int64),
+                                                                                             tf.int64),
                                                             'n_total': tf.io.FixedLenFeature([],
-                                                                                          tf.int64)})
+                                                                                             tf.int64)})
 
             for k in ['traffic', target, 'link_capacity', 'links', 'paths', 'sequences']:
                 # TODO This is a form of normalisation, but why these values? Factor into
