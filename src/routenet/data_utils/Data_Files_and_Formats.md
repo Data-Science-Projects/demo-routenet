@@ -11,15 +11,16 @@ Within a give network directory, there is a *.ned file, which describes the netw
 including the link capacities. This file is used with [OMNeT++](https://omnetpp.org) to import the 
 topology and simulate the network as described in [TODO](TODO).
 
-Example contents:
+The exanmple contents below are from the 
+[Network_nsfnetbw.ned](../../../tests/unit-resources/nsfnetbw/Network_nsfnetbw.ned) file:
 
 ```
 package netsimulator;
-network  Network_synth50bw
+network  Network_nsfnetbw
 {
     parameters:
-        int numNodes = 50;
-        int numTx = 50;
+        int numNodes = 14;
+        int numTx = 14;
     types:
         channel Channel10kbps extends ned.DatarateChannel
         {
@@ -41,15 +42,15 @@ network  Network_synth50bw
             numTx = numTx;
             numNodes = numNodes;
             gates:
-                port[8];
+                port[3];
         }
- ...
-       node49: Server {
-            id = 49;
+        ...     
+        node13: Server {
+            id = 13;
             numTx = numTx;
             numNodes = numNodes;
             gates:
-                port[3];
+                port[2];
         }
         tController: NetTrafficController {
             numTx = numTx;
@@ -60,21 +61,15 @@ network  Network_synth50bw
 
     connections:
 
-      node0.port[0] <--> Channel10kbps <--> node2.port[0];
-      node0.port[1] <--> Channel40kbps <--> node15.port[0];
-      node0.port[2] <--> Channel40kbps <--> node14.port[0];
-...
-      node46.port[3] <--> Channel40kbps <--> node48.port[6];
-      node46.port[4] <--> Channel10kbps <--> node47.port[4];
+      node0.port[0] <--> Channel10kbps <--> node1.port[0];
+      ...
+      node11.port[2] <--> Channel10kbps <--> node12.port[2];
 
 
       tController.out[0] --> { @display("ls=grey,1,d"); } --> node0.tControl;
-      tController.out[1] --> { @display("ls=grey,1,d"); } --> node1.tControl;
-...
-      tController.out[48] --> { @display("ls=grey,1,d"); } --> node48.tControl;
-      tController.out[49] --> { @display("ls=grey,1,d"); } --> node49.tControl;
+      ...
+      tController.out[13] --> { @display("ls=grey,1,d"); } --> node13.tControl;
 }
-
 ```
 ## Simulation Results
 
@@ -105,24 +100,47 @@ Routing_matrix(src node, dst node) = output port to reach the dst node from the 
 
 Note that the diagonal of the matrix is -1. 
 
-Example contents:
+The exanmple contents below are from the 
+[Routing.txt](../../../tests/unit-resources/nsfnetbw/Routing.txt) file corresponding to the
+[Network_nsfnetbw.ned](../../../tests/unit-resources/nsfnetbw/Network_nsfnetbw.ned) file:
 ```
--1,0,0,5,5,3,3,0,6,2,4,7,1,0,2,1,0,4,4,1,1,4,5,1,2,5,2,4,2,5,5,1,0,2,1,7,0,3,1,5,4,5,2,2,3,5,0,5,5,2,
-2,-1,2,3,2,2,2,1,2,3,3,2,2,2,2,2,2,3,2,2,2,3,3,2,3,3,2,3,3,0,0,1,2,2,2,2,2,2,2,3,3,3,3,3,2,3,0,0,3,3,
-0,2,-1,1,1,0,0,2,0,1,0,3,2,2,0,3,2,1,0,4,4,0,1,3,0,1,0,1,0,1,1,2,2,0,2,0,2,0,3,1,0,1,1,1,0,1,2,1,1,0,
-6,1,6,-1,6,6,6,1,5,1,5,6,1,1,6,6,4,5,5,1,4,5,2,1,1,0,1,0,1,3,4,1,4,1,1,6,1,6,4,5,5,2,1,1,6,0,3,3,1,1,
-...
-1,0,1,2,1,1,1,1,1,3,3,1,1,1,1,1,1,2,1,1,1,2,3,1,3,3,1,3,3,2,2,1,1,1,1,1,1,1,1,2,3,3,3,3,1,2,-1,4,3,3,
-3,0,0,2,3,3,0,0,3,2,2,0,0,0,3,0,1,2,3,0,0,2,2,0,2,2,0,2,0,2,3,0,0,0,0,0,0,0,0,2,2,2,2,2,0,2,4,-1,2,2,
-1,0,1,1,1,1,1,0,1,5,4,1,0,0,1,1,1,1,1,0,0,1,2,0,4,2,4,5,4,3,1,0,1,4,0,1,0,1,0,1,4,5,4,5,4,1,6,3,-1,4,
-0,1,1,1,1,0,0,1,0,2,0,0,1,1,0,0,1,0,0,1,1,0,2,0,0,2,0,2,0,1,1,0,1,0,0,0,1,0,0,1,0,2,1,2,0,2,1,1,1,-1,
+-1,0,2,1,1,2,1,0,1,1,0,1,2,2,
+0,-1,1,0,2,1,2,2,0,2,2,2,1,1,
+0,1,-1,0,2,2,2,1,0,2,2,2,2,2,
+0,0,0,-1,1,1,1,1,2,2,2,2,2,1,
+0,2,1,0,-1,1,2,2,0,1,1,0,1,1,
+0,0,0,1,1,-1,1,1,1,2,3,2,2,3,
+0,1,0,0,0,0,-1,1,0,1,1,1,0,0,
+0,0,0,1,1,1,1,-1,2,2,2,2,2,2,
+0,0,0,0,0,2,0,1,-1,1,1,2,2,1,
+0,1,2,0,0,2,1,1,0,-1,1,0,2,1,
+0,0,3,1,3,3,0,0,1,1,-1,2,1,3,
+0,1,2,0,2,2,1,1,0,2,1,-1,2,1,
+0,0,0,0,0,0,0,1,1,1,1,2,-1,0,
+0,0,0,0,0,0,0,1,1,1,1,1,0,-1,
 ```
 
-The example above is from a sample that is 50 columns by 50 rows, corresponding to the 
-`int numNodes = 50` value in the NED file. In a topology with ‘n’ nodes, nodes are enumerated in the 
-range [0,n-1]. 
+The example above is from a sample that is 14 columns by 14 rows, corresponding to the 
+`int numNodes = 14` value in the NED file. In a topology with ‘n’ nodes, nodes are enumerated in the 
+range [0, numNodes-1]. 
 
-TODO Explain the values in the matrix by reference to ?
+The first row represents `node0`, where the path to `node1` is via `port0`, to `node2` via
+`port2`, to `node3` via `port1`, to `node4` via `port1` (so, by implication via `node3` 
+which is also reached via `port1`), and so on.
+
+In the 
+[Network_nsfnetbw.ned](../../../tests/unit-resources/nsfnetbw/Network_nsfnetbw.ned) file the
+corresponding entries are:
+
+```
+node0.port[0] <--> Channel10kbps <--> node1.port[0];
+node0.port[1] <--> Channel10kbps <--> node3.port[0];
+node0.port[2] <--> Channel10kbps <--> node2.port[0];
+```
+
+Where we can see that the connection from `node0.port[0]` goes into `node1.port[0]`, so, in the
+[Routing.txt](../../../tests/unit-resources/nsfnetbw/Routing.txt), we also see that, in the second row, for 
+`node1`, the connection to `node0` is vi` `port0`.
 
 ### simulationResults.txt 
 

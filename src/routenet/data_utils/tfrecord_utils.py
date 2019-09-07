@@ -92,10 +92,10 @@ def process_data(network_data_dir, te_split=0.8):
 
 
 def make_tfrecord(data_dir_path, tf_file_name, ned_file_name, routing_file, results_file):
-    connections, num_nodes, link_capacity_dict = ned2lists(ned_file_name)
+    connections_lists, num_nodes, link_capacity_dict = ned2lists(ned_file_name)
 
-    routing = load_routing(routing_file)
-    paths, link_capacities = make_paths(routing, connections, link_capacity_dict)
+    routing_mtrx = get_routing_matrix(routing_file)
+    paths, link_capacities = make_paths(routing_mtrx, connections_lists, link_capacity_dict)
 
     num_paths = len(paths)
     num_links = max(max(paths)) + 1
@@ -152,19 +152,33 @@ def write_tfrecord(result_data,
 
 def ned2lists(ned_file_name):
     """
-    Processes the NED file and scans for the lines in the "connections:" section.
+    Processes the NED file and scans for the lines in the "connections_dicts:" section.
     Those lines are of the format:
 
     node0.port[<port number>] <--> Channel<capacity>kbps <--> node2.port[<port number>];
 
     For example:
 
+    node0.port[0] <--> Channel10kbps <--> node1.port[0];
     node0.port[0] <--> Channel10kbps <--> node2.port[0];
+    ...
 
+    The return value of connections_lists is a list of lists where each connections_lists position
+    corresponds to a list of other nodes connected to the node at that position in the
+    connections_lists, for example [[1, 3, 2], [0, 2, 7], ...] means that node0 is connected to
+    nodes 1, 3 and 2, and that node 1 is connected to nodes 0, 2 and 7. The order of the nodes in
+    the sub-lists is defined by the order in which the `connections:` in the .ned file appears,
+    which is in the order of the port number, so, for example, node0 is connected to node1 via
+    port0, which is shown by `node0.port[0] <--> Channel10kbps <--> node1.port[0];` in the .ned
+    file.
 
+    The return value of link_capacity_dict is a dictionary keyed by <noden>:<nodem>, where the
+    value is the capacity between noden and nodem. For example, from node0 to node1 the capacity is
+    10, so the dictionary entry is {'0:1':10}.
 
     :param ned_file_name:
-    :return:
+    :return: connections_lists, described above; num_nodes, which is the number of nodes in the
+    topology; and link_capacity_dict, described above.
     """
     channels = []
     link_capacity_dict = {}  # TODO change to link_capacity?
@@ -191,20 +205,18 @@ def ned2lists(ned_file_name):
 
     # Find the largest node number in the channels, and add one to get the number of nodes
     num_nodes = max(map(max, channels)) + 1
-    connections = [{} for i in range(num_nodes)]
-    # Shape of connections[node][port] = node connected to
+    connections_dicts = [{} for i in range(num_nodes)]
+    # Shape of connections_dicts[node][port] = node connected to
     for node_port in channels:
         # Based on the example above, connection from node0.port0 to node1
-        connections[node_port[0]][node_port[1]] = node_port[2]
+        connections_dicts[node_port[0]][node_port[1]] = node_port[2]
         # and connection from node1.port0 to node0
-        connections[node_port[2]][node_port[3]] = node_port[0]
-    # Connections store an array of nodes where each node position corresponds to
-    # another array of nodes that are connected to the current node
-    connections = [[v for k, v in sorted(con.items())] for con in connections]
-    return connections, num_nodes, link_capacity_dict
+        connections_dicts[node_port[2]][node_port[3]] = node_port[0]
+    connections_lists = [[v for k, v in sorted(con.items())] for con in connections_dicts]
+    return connections_lists, num_nodes, link_capacity_dict
 
 
-def load_routing(routing_file):
+def get_routing_matrix(routing_file):
     """
     Reads the routing matrix from the routing file and returns a Numpy representation of the matrix.
     :param routing_file: File containing routing matrix. See Data_Files_and_Formats.md.
@@ -216,16 +228,81 @@ def load_routing(routing_file):
     return routing_df.values
 
 
-def make_paths(routing, connections, link_capacity_dict):
-    num_nodes = routing.shape[0]
-    links, link_capacities = extract_links(num_nodes, connections, link_capacity_dict)
+def make_paths(routing_mtrx, connections_lists, link_capacity_dict):
+    """
+    This function calls `src_to_dest_hops(...)` to generate a list of tuples that are
+    (src, dest) sequences. The function `extract_links(...)` generates the list of links.
+
+    The paths list return value is populated with the index values of the tuples from
+    `src_to_dest_hops` in links.
+
+    For example, paths=[[0], [1], [2], [2, 10], [1, 8], ...] means that the path from node0 to node1
+    is the first value, '[0]' in links, which is (0, 1), whilst the path from node0 to node4 is the
+    third value in links, (0, 3) and the eleventh value, (3, 4). Examples based on nsfnetbw.
+
+    :param routing_mtrx: A Numpy representation of the routing matrix.
+    :param connections_lists: See ned2lists(...).
+    :param link_capacity_dict: See extract_links(...)
+    :return: paths, link_capacities
+    """
+    num_nodes = routing_mtrx.shape[0]
+    links, link_capacities = extract_links(num_nodes, connections_lists, link_capacity_dict)
     paths = []
-    for i in range(num_nodes):
-        for j in range(num_nodes):
-            if i != j:
+    for source in range(num_nodes):
+        for destination in range(num_nodes):
+            if source != destination:
                 paths.append(
-                    [links.index(tup) for tup in pairwise(gen_path(routing, i, j, connections))])
+                    [links.index(tup) for tup in src_to_dest_hops(gen_path(routing_mtrx,
+                                                                           source,
+                                                                           destination,
+                                                                           connections_lists))])
     return paths, link_capacities
+
+
+def src_to_dest_hops(path_itrtr):
+    """
+    This function starts with the iterator from `gen_path`, then creates two iterators. The second
+    iterator is incremented, and then both are zip'ed. The outcome is a list of tuples representing
+    the source node and the next hop, then the next hop and its next hop and so on to the last next
+    hop and destination, of the form:
+
+    [(source, next hop 1), (next hop 1, next hop 2) ... (next hop n, destination)]
+
+    :param path_itrtr: See gen_path(...)
+    :return: A list of tuples representing the source node and the next hops from src to dest.
+    """
+    src_itrtr, next_hop_itrtr = it.tee(path_itrtr)
+    next(next_hop_itrtr, None)
+    return zip(src_itrtr, next_hop_itrtr)
+
+
+def gen_path(routing_mtrx, source, destination, connections_lists):
+    """
+    Yields a sequence of node numbers in the path from the source to the destination,
+    starting with the source and ending with the destination.
+
+    :param routing_mtrx: A Numpy representation of the routing matrix.
+    :param source: The source node number.
+    :param destination: The destination node number.
+    :param connections_lists: See ned2lists(...).
+    :return: An iterator.
+    """
+    while source != destination:
+        # The first value that is yielded is the source node number.
+        yield source
+        # The value of routing[source, destination] is the port number of the source for the path
+        # from the source to the destination.
+        # The value of connections[source] is the list of other nodes to which the source node
+        # has connections, in order of port number.
+        # Applying the port number as the index for the list of other nodes means that source
+        # is then the value of one of the nodes to which source has a path, which is then yielded
+        # also, up tp the point where the destination is encountered, when the while loop ends and
+        # ...
+        source = connections_lists[source][routing_mtrx[source, destination]]
+        # ... the final value of source, which is the destination, is yielded. The result is the
+        # sequence of node numbers in the path from the source to the destination, starting with
+        # the source and ending with the destination.
+    yield source
 
 
 def extract_links(num_nodes, connections, link_capacity_dict):
@@ -240,14 +317,21 @@ def extract_links(num_nodes, connections, link_capacity_dict):
     grph_adjcny_mtrx = np.zeros((num_nodes, num_nodes))
 
     #
-    for a, c in zip(grph_adjcny_mtrx, connections):
-        a[c] = 1
+    for adjacencies, connection_set in zip(grph_adjcny_mtrx, connections):
+        # For adjacencies row n of the matrix, corresponding to node n, set a value of 1 for each
+        # position in the row corresponding to the other nodes that node n has a link to.
+        adjacencies[connection_set] = 1
 
+    # Given the adjacency matrix, construct a directed graph.
     graph = nx.from_numpy_array(grph_adjcny_mtrx, create_using=nx.DiGraph())
+    # From the graph, "Edges are represented as links between nodes ...". The links is a list
+    # of tuples representing the connections from node n to node m, and node m to node n.
     links = list(graph.edges)
+    # The link_capacities is a list of the capacities of the links in order of the the connections
+    # in links.
     link_capacities = []
-    # The links 0-2 or 2-0 can exist. They are duplicated (up and down) and they must have same
-    # capacity.
+    # The links are duplicated from n to m and m to n, so they must have the same capacity in both
+    # directions. The link_capacity_dict keys are of the form n:m and m:n.
     for link in links:
         if str(link[0]) + ':' + str(link[1]) in link_capacity_dict:
             capacity = link_capacity_dict[str(link[0]) + ':' + str(link[1])]
@@ -256,7 +340,7 @@ def extract_links(num_nodes, connections, link_capacity_dict):
             capacity = link_capacity_dict[str(link[1]) + ':' + str(link[0])]
             link_capacities.append(capacity)
         else:
-            raise Exception('Error in dataset - link not found - ', link)
+            raise Exception('Error in dataset - link not found in link capacities - ', link)
 
     return links, link_capacities
 
@@ -283,20 +367,6 @@ def get_corresponding_values(rslt_pos_gnrtr, result_data, num_nodes, num_paths):
 def data(parsed_args):
     directory = parsed_args.d[0]
     process_data(directory)
-
-
-def gen_path(routing, s, d, connections):
-    while s != d:
-        yield s
-        s = connections[s][routing[s, d]]
-    yield s
-
-
-def pairwise(iterable):
-    """s -> (s0,s1), (s1,s2), (s2, s3), ..."""
-    a, b = it.tee(iterable)
-    next(b, None)
-    return zip(a, b)
 
 
 def make_indices(paths):
@@ -373,7 +443,8 @@ def parse(serialized, target='delay'):
                                                                                           tf.int64)})
 
             for k in ['traffic', target, 'link_capacity', 'links', 'paths', 'sequences']:
-                # TODO why is this being applied?
+                # TODO This is a form of normalisation, but why these values? Factor into
+                # discrete functions.
                 features[k] = tf.sparse.to_dense(features[k])
                 if k == 'delay':
                     features[k] = (features[k] - 0.37) / 0.54
@@ -386,8 +457,8 @@ def parse(serialized, target='delay'):
 
 
 def read_dataset(filename, target='delay'):
-    ds = tf.data.TFRecordDataset(filename)
-    ds = ds.map(lambda buf: parse(buf, target=target))
-    ds = ds.batch(1)
+    dataset = tf.data.TFRecordDataset(filename)
+    dataset = dataset.map(lambda buf: parse(buf, target=target))
+    dataset = dataset.batch(1)
 
-    return ds
+    return dataset

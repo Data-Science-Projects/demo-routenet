@@ -12,12 +12,12 @@ from routenet.train import train as rn_train
 TEST_CODE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-class TrainTest(unittest.TestCase):
+class TestTrain(unittest.TestCase):
 
-    data_dir_root = TEST_CODE_DIR + '/../unit-resources/data/'
+    data_dir_root = TEST_CODE_DIR + '/../unit-resources/nsfnetbw/data/'
 
     def test_tfrecord_input_fn(self):
-        train_files_list = glob.glob(self.data_dir_root + '/nsfnetbw/tfrecords/train/*.tfrecords')
+        train_files_list = glob.glob(self.data_dir_root + '/tfrecords/train/*.tfrecords')
 
         sample = rn_train.tfrecord_input_fn(filenames=train_files_list,
                                             hparams=RouteNetModel.default_hparams,

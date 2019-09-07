@@ -13,7 +13,7 @@ import routenet.data_utils.tfrecord_utils as tfr_utils
 TEST_CODE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-class TFRecordsTest(unittest.TestCase):
+class TestTFRecords(unittest.TestCase):
 
     num_nodes = 0
     connections = []
@@ -28,10 +28,10 @@ class TFRecordsTest(unittest.TestCase):
     link_indices, path_indices, sequ_indices = [], [], []
     result_data = []
     rslt_pos_gnrtr = None
-    tf_rcrds_fl_nm = TEST_CODE_DIR + '/../unit-resources/test_results.tfrecords'
+    tf_rcrds_fl_nm = TEST_CODE_DIR + '/../unit-resources/nsfnetbw/test_results.tfrecords'
 
     def test_1_ned2lists(self):
-        ned_file_name = TEST_CODE_DIR + '/../unit-resources/Network_nsfnetbw.ned'
+        ned_file_name = TEST_CODE_DIR + '/../unit-resources/nsfnetbw/Network_nsfnetbw.ned'
         self.__class__.connections, self.__class__.num_nodes, self.__class__.link_capacity_dict = \
             tfr_utils.ned2lists(ned_file_name)
         assert (self.__class__.num_nodes == 14)
@@ -48,7 +48,7 @@ class TFRecordsTest(unittest.TestCase):
                                                       '10:13': 10, '11:12': 10})
 
     def test_2_load_routing(self):
-        routing_file = TEST_CODE_DIR + '/../unit-resources/Routing.txt'
+        routing_file = TEST_CODE_DIR + '/../unit-resources/nsfnetbw/Routing.txt'
         routing_expected = np.array([[-1, 0, 2, 1, 1, 2, 1, 0, 1, 1, 0, 1, 2, 2],
                                      [0, -1, 1, 0, 2, 1, 2, 2, 0, 2, 2, 2, 1, 1],
                                      [0, 1, -1, 0, 2, 2, 2, 1, 0, 2, 2, 2, 2, 2],
@@ -64,7 +64,7 @@ class TFRecordsTest(unittest.TestCase):
                                      [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, -1, 0],
                                      [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, -1]])
 
-        self.__class__.routing = tfr_utils.load_routing(routing_file)
+        self.__class__.routing = tfr_utils.get_routing_matrix(routing_file)
         np.testing.assert_array_equal(self.routing, routing_expected)
 
     def test_3_make_paths(self):
@@ -123,7 +123,7 @@ class TFRecordsTest(unittest.TestCase):
     def test_5_get_corresponding_values(self):
         self.__class__.rslt_pos_gnrtr = \
             tfr_utils.ResultsPositionGenerator(self.__class__.num_nodes)
-        with open(TEST_CODE_DIR + '/../unit-resources/simulationResult.txt') as result_file:
+        with open(TEST_CODE_DIR + '/../unit-resources/nsfnetbw/simulationResult.txt') as result_file:
             for rslt_data in result_file:
                 self.__class__.result_data = rslt_data.split(',')
                 self.__class__.traffic_bw_txs, self.__class__.delays, self.__class__.jitters = \
