@@ -350,7 +350,7 @@ def extract_links(n, connections, link_cap):
     G=nx.from_numpy_array(A, create_using=nx.DiGraph())
     edges=list(G.edges)
     capacities_links = []
-    # The edges 0-2 or 2-0 can exist. They are duplicated (up and down) and they must have same capacity.
+    # The links 0-2 or 2-0 can exist. They are duplicated (up and down) and they must have same capacity.
     for e in edges:
         if str(e[0])+':'+str(e[1]) in link_cap:
             capacity = link_cap[str(e[0])+':'+str(e[1])]

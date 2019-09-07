@@ -14,7 +14,7 @@ import tensorflow as tf
 import routenet.data_utils.tfrecord_utils
 from routenet.data_utils.tfrecord_utils import read_dataset
 from routenet.model.routenet_model import RouteNetModel
-from routenet.train import train
+from routenet.train import train as rn_train
 
 TEST_CODE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -53,14 +53,14 @@ class SmokeTest(unittest.TestCase):
         eval_files_list = glob.glob(self.data_dir_root + data_set_name +
                                     '/tfrecords/evaluate/*.tfrecords')
 
-        train.train_and_evaluate(model_dir=TEST_CODE_DIR +
-                                           ('/../smoke-resources/CheckPoints/' + data_set_name),
-                                 train_files=train_files_list,
-                                 shuffle_buf=30,
-                                 target='delay',
-                                 train_steps=100,
-                                 eval_files=eval_files_list,
-                                 warm_start_from=None)
+        rn_train.train_and_evaluate(model_dir=TEST_CODE_DIR +
+                                    ('/../smoke-resources/CheckPoints/' + data_set_name),
+                                    train_files=train_files_list,
+                                    shuffle_buf=30,
+                                    target='delay',
+                                    train_steps=100,
+                                    eval_files=eval_files_list,
+                                    warm_start_from=None)
 
     def test_2_nsfnetbw_train(self):
         self.do_train('nsfnetbw')
@@ -94,7 +94,7 @@ class SmokeTest(unittest.TestCase):
 
             preds = tf.squeeze(predictions)
             # This is in the inverse of the transform applied in tfrecords_utils.parse()
-            # Why the transform is applied at all is unclear though.
+            # Why the transform is applied at all is unclear though. TODO
             predictions = 0.54 * preds + 0.37
 
         with tf.compat.v1.Session(graph=graph_predict) as sess:

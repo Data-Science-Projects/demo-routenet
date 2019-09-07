@@ -53,9 +53,9 @@ def train_and_evaluate(model_dir,
     tf.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
 
 
-def cummax(alist, extractor):
+def cummax(batch_vals, extractor):
     with tf.name_scope('cummax'):
-        maxes = [tf.reduce_max(extractor(v)) + 1 for v in alist]
+        maxes = [tf.reduce_max(extractor(val)) + 1 for val in batch_vals]
         cummaxes = [tf.zeros_like(maxes[0])]
         for i in range(len(maxes)-1):
             cummaxes.append(tf.math.add_n(maxes[0:i+1]))
@@ -65,22 +65,25 @@ def cummax(alist, extractor):
 
 def transformation_func(itrtr, batch_size=32):
     with tf.name_scope('transformation_func'):
-        vs = [itrtr.get_next() for _ in range(batch_size)]
+        batch_vals = [itrtr.get_next() for _ in range(batch_size)]
 
-        links_cummax = cummax(vs, lambda v: v[0]['links'])
-        paths_cummax = cummax(vs, lambda v: v[0]['paths'])
+        links_cummax = cummax(batch_vals, lambda val: val[0]['links'])
+        paths_cummax = cummax(batch_vals, lambda val: val[0]['paths'])
 
-        tensors = ({'traffic': tf.concat([v[0]['traffic'] for v in vs], axis=0),
-                    'sequences': tf.concat([v[0]['sequences'] for v in vs], axis=0),
-                    'link_capacity': tf.concat([v[0]['link_capacity'] for v in vs], axis=0),
-                    'links': tf.concat([v[0]['links'] + m for v, m in zip(vs, links_cummax)],
+        tensors = ({'traffic': tf.concat([val[0]['traffic'] for val in batch_vals], axis=0),
+                    'sequences': tf.concat([val[0]['sequences'] for val in batch_vals], axis=0),
+                    'link_capacity': tf.concat([val[0]['link_capacity'] for val in batch_vals],
+                                               axis=0),
+                    'links': tf.concat([val[0]['links'] + m for val, m in zip(batch_vals,
+                                                                              links_cummax)],
                                        axis=0),
-                    'paths': tf.concat([v[0]['paths'] + m for v, m in zip(vs, paths_cummax)],
+                    'paths': tf.concat([val[0]['paths'] + m for val, m in zip(batch_vals,
+                                                                              paths_cummax)],
                                        axis=0),
-                    'n_links': tf.math.add_n([v[0]['n_links'] for v in vs]),
-                    'n_paths': tf.math.add_n([v[0]['n_paths'] for v in vs]),
-                    'n_total': tf.math.add_n([v[0]['n_total'] for v in vs])
-                    }, tf.concat([v[1] for v in vs], axis=0))
+                    'n_links': tf.math.add_n([val[0]['n_links'] for val in batch_vals]),
+                    'n_paths': tf.math.add_n([val[0]['n_paths'] for val in batch_vals]),
+                    'n_total': tf.math.add_n([val[0]['n_total'] for val in batch_vals])
+                    }, tf.concat([val[1] for val in batch_vals], axis=0))
 
     return tensors
 
@@ -90,12 +93,14 @@ def tfrecord_input_fn(filenames, hparams, shuffle_buf=1000, target='delay'):
     files = tf.data.Dataset.from_tensor_slices(filenames)
     files = files.shuffle(len(filenames))
 
+    # TODO constant 4 should be externalised
     ds = files.apply(tf.contrib.data.parallel_interleave(
         tf.data.TFRecordDataset, cycle_length=4))
 
     if shuffle_buf:
         ds = ds.apply(tf.contrib.data.shuffle_and_repeat(shuffle_buf))
 
+    # TODO constants 2 and 10 should be externalised
     ds = ds.map(lambda buf: tfr_utils.parse(buf, target), num_parallel_calls=2)
     ds = ds.prefetch(10)
 

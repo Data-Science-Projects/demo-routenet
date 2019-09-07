@@ -21,7 +21,7 @@ class TFRecordsTest(unittest.TestCase):
     routing = []
     paths = []
     link_capacities = []
-    edges = []
+    links = []
     traffic_bw_txs = np.zeros(1)
     delays = np.zeros(1)
     jitters = np.zeros(1)
@@ -102,23 +102,23 @@ class TFRecordsTest(unittest.TestCase):
                           [41, 32], [40, 17]]
 
         link_capacities_expected = [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 40, 10, 40, 40, 10, 10,
-                                     40, 10, 10, 10, 10, 10, 10, 40, 10, 10, 10, 10, 10, 10, 40, 10,
-                                     10, 10, 10, 10, 10, 10, 10, 10, 10, 10]
+                                    40, 10, 10, 10, 10, 10, 10, 40, 10, 10, 10, 10, 10, 10, 40, 10,
+                                    10, 10, 10, 10, 10, 10, 10, 10, 10, 10]
 
         assert (self.__class__.paths == paths_expected)
         assert (self.__class__.link_capacities == link_capacities_expected)
 
     def test_4_extract_links(self):
-        self.__class__.edges, self.__class__.capacities_links = tfr_utils.extract_links(
+        self.__class__.links, self.__class__.capacities_links = tfr_utils.extract_links(
             self.__class__.num_nodes, self.__class__.connections, self.__class__.link_capacity_dict)
 
-        edges_expected = [(0, 1), (0, 2), (0, 3), (1, 0), (1, 2), (1, 7), (2, 0), (2, 1), (2, 5),
+        links_expected = [(0, 1), (0, 2), (0, 3), (1, 0), (1, 2), (1, 7), (2, 0), (2, 1), (2, 5),
                           (3, 0), (3, 4), (3, 8), (4, 3), (4, 5), (4, 6), (5, 2), (5, 4), (5, 12),
                           (5, 13), (6, 4), (6, 7), (7, 1), (7, 6), (7, 10), (8, 3), (8, 9), (8, 11),
                           (9, 8), (9, 10), (9, 12), (10, 7), (10, 9), (10, 11), (10, 13), (11, 8),
                           (11, 10), (11, 12), (12, 5), (12, 9), (12, 11), (13, 5), (13, 10)]
 
-        assert (self.__class__.edges == edges_expected)
+        assert (self.__class__.links == links_expected)
 
     def test_5_get_corresponding_values(self):
         self.__class__.rslt_pos_gnrtr = \
@@ -322,14 +322,16 @@ class TFRecordsTest(unittest.TestCase):
 
             assert(len(features_keys) == 8)
 
-            assert('links' in features_keys)
-            assert('paths' in features_keys)
-            assert('sequences' in features_keys)
-            assert('traffic' in features_keys)
-            assert('n_links' in features_keys)
-            assert('n_paths' in features_keys)
-            assert('n_total' in features_keys)
-            assert('link_capacity' in features_keys)
+            test_dict_keys = {'traffic',
+                              'sequences',
+                              'link_capacity',
+                              'links',
+                              'paths',
+                              'n_links',
+                              'n_paths',
+                              'n_total'}
+
+            assert (set(features_keys) == test_dict_keys)
 
             label_val = label.eval()
             label_val = (label_val[0] * 0.54) + 0.37

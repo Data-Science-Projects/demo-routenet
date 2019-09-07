@@ -198,7 +198,7 @@ def ned2lists(ned_file_name):
         connections[node_port[0]][node_port[1]] = node_port[2]
         # and connection from node1.port0 to node0
         connections[node_port[2]][node_port[3]] = node_port[0]
-    # Connections store an array of nodes where each node position correspond to
+    # Connections store an array of nodes where each node position corresponds to
     # another array of nodes that are connected to the current node
     connections = [[v for k, v in sorted(con.items())] for con in connections]
     return connections, num_nodes, link_capacity_dict
@@ -218,13 +218,13 @@ def load_routing(routing_file):
 
 def make_paths(routing, connections, link_capacity_dict):
     num_nodes = routing.shape[0]
-    edges, link_capacities = extract_links(num_nodes, connections, link_capacity_dict)
+    links, link_capacities = extract_links(num_nodes, connections, link_capacity_dict)
     paths = []
     for i in range(num_nodes):
         for j in range(num_nodes):
             if i != j:
                 paths.append(
-                    [edges.index(tup) for tup in pairwise(gen_path(routing, i, j, connections))])
+                    [links.index(tup) for tup in pairwise(gen_path(routing, i, j, connections))])
     return paths, link_capacities
 
 
@@ -236,27 +236,29 @@ def extract_links(num_nodes, connections, link_capacity_dict):
     :param link_capacity_dict:
     :return:
     """
-    A = np.zeros((num_nodes, num_nodes))
+    # An adjacency matrix representation of a graph
+    grph_adjcny_mtrx = np.zeros((num_nodes, num_nodes))
 
-    for a, c in zip(A, connections):
+    #
+    for a, c in zip(grph_adjcny_mtrx, connections):
         a[c] = 1
 
-    graph = nx.from_numpy_array(A, create_using=nx.DiGraph())
-    edges = list(graph.edges)
+    graph = nx.from_numpy_array(grph_adjcny_mtrx, create_using=nx.DiGraph())
+    links = list(graph.edges)
     link_capacities = []
-    # The edges 0-2 or 2-0 can exist. They are duplicated (up and down) and they must have same
+    # The links 0-2 or 2-0 can exist. They are duplicated (up and down) and they must have same
     # capacity.
-    for edge in edges:
-        if str(edge[0]) + ':' + str(edge[1]) in link_capacity_dict:
-            capacity = link_capacity_dict[str(edge[0]) + ':' + str(edge[1])]
+    for link in links:
+        if str(link[0]) + ':' + str(link[1]) in link_capacity_dict:
+            capacity = link_capacity_dict[str(link[0]) + ':' + str(link[1])]
             link_capacities.append(capacity)
-        elif str(edge[1]) + ':' + str(edge[0]) in link_capacity_dict:
-            capacity = link_capacity_dict[str(edge[1]) + ':' + str(edge[0])]
+        elif str(link[1]) + ':' + str(link[0]) in link_capacity_dict:
+            capacity = link_capacity_dict[str(link[1]) + ':' + str(link[0])]
             link_capacities.append(capacity)
         else:
-            raise Exception('Error in dataset - edge not found - ', edge)
+            raise Exception('Error in dataset - link not found - ', link)
 
-    return edges, link_capacities
+    return links, link_capacities
 
 
 def get_corresponding_values(rslt_pos_gnrtr, result_data, num_nodes, num_paths):
