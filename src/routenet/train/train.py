@@ -89,22 +89,22 @@ def transformation_func(itrtr, batch_size=32):
 
 
 def tfrecord_input_fn(filenames, hparams, shuffle_buf=1000, target='delay'):
-    
+
     files = tf.data.Dataset.from_tensor_slices(filenames)
     files = files.shuffle(len(filenames))
 
     # TODO constant 4 should be externalised
-    ds = files.apply(tf.contrib.data.parallel_interleave(
+    dataset = files.apply(tf.contrib.data.parallel_interleave(
         tf.data.TFRecordDataset, cycle_length=4))
 
     if shuffle_buf:
-        ds = ds.apply(tf.contrib.data.shuffle_and_repeat(shuffle_buf))
+        dataset = dataset.apply(tf.contrib.data.shuffle_and_repeat(shuffle_buf))
 
     # TODO constants 2 and 10 should be externalised
-    ds = ds.map(lambda buf: tfr_utils.parse(buf, target), num_parallel_calls=2)
-    ds = ds.prefetch(10)
+    dataset = dataset.map(lambda buf: tfr_utils.parse(buf, target), num_parallel_calls=2)
+    dataset = dataset.prefetch(10)
 
-    itrtr = ds.make_one_shot_iterator()
+    itrtr = dataset.make_one_shot_iterator()
     sample = transformation_func(itrtr, hparams.batch_size)
 
     return sample
@@ -123,11 +123,12 @@ def model_fn(features, labels, mode, params):
     model = RouteNetModel(params)
     model.build()
 
-    def fn(x):
-        r = model(x, training=mode == tf.estimator.ModeKeys.TRAIN)
-        return r
+    # TODO why this function at all?
+    def predict_fn(features):
+        preds = model(features, training=mode == tf.estimator.ModeKeys.TRAIN)
+        return preds
 
-    predictions = fn(features)
+    predictions = predict_fn(features)
 
     predictions = tf.squeeze(predictions)
 
@@ -166,6 +167,7 @@ def model_fn(features, labels, mode, params):
     summaries = [tf.summary.histogram(var.op.name, var) for var in trainables]
     summaries += [tf.summary.histogram(g.op.name, g) for g in grads if g is not None]
 
+    # TODO constants 82000 and 0.8 should be externalised.
     decayed_lr = tf.train.exponential_decay(params.learning_rate,
                                             tf.train.get_global_step(),
                                             82000,

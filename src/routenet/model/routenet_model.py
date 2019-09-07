@@ -28,7 +28,8 @@ class RouteNetModel(tf.keras.Model):
                                                   dropout_rate=0.5,
                                                   l2=0.1,
                                                   l2_2=0.01,
-                                                  learn_embedding=True)  # If false, only the readout is trained
+                                                  learn_embedding=True)
+    # If false, only the readout is trained
 
     def __init__(self, hparams=default_hparams, output_units=1, final_activation=None):
         super(RouteNetModel, self).__init__()
