@@ -10,6 +10,3 @@ env: PYTHONPATH=$PYTHONPATH:$TRAVIS_BUILD_DIR/src:$TRAVIS_BUILD_DIR
 script:
   - pylint-fail-under --fail_under 7.0 src/*
   - cd tests/unit; pytest *
-  - ls /home/travis/build/Data-Science-Projects/demo-routenet/tests/unit/../unit-resources/nsfnetbw/tfrecords/evaluate
-  - ls /home/travis/build/Data-Science-Projects/demo-routenet/tests/unit/../unit-resources/nsfnetbw/tfrecords/train
-  - ls /home/travis/build/Data-Science-Projects/demo-routenet/tests/unit/../unit-resources/nsfnetbw
