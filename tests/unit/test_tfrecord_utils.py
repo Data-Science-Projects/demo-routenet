@@ -3,6 +3,7 @@ __copyright__ = 'Copyright 2019 Nathan Sowatskey, Ana Matute. All rights reserve
 __author__ = 'nsowatsk@cisco.com'
 
 import os
+import shutil
 import unittest
 
 import numpy as np
@@ -16,9 +17,9 @@ TEST_CODE_DIR = os.path.dirname(os.path.abspath(__file__))
 class TestTFRecords(unittest.TestCase):
 
     num_nodes = 0
-    connections = []
+    connections_lists = []
     link_capacity_dict = {}
-    routing = []
+    routing_mtrx = []
     paths = []
     link_capacities = []
     links = []
@@ -28,17 +29,19 @@ class TestTFRecords(unittest.TestCase):
     link_indices, path_indices, sequ_indices = [], [], []
     result_data = []
     rslt_pos_gnrtr = None
-    tf_rcrds_fl_nm = TEST_CODE_DIR + '/../unit-resources/nsfnetbw/test_results.tfrecords'
+    network_data_dir = TEST_CODE_DIR + '/../unit-resources/nsfnetbw/'
+    tf_rcrds_dir = network_data_dir + 'tfrecords/'
+    tf_rcrds_fl_nm = tf_rcrds_dir + '/test_results.tfrecords'
 
-    def test_1_ned2lists(self):
+    def test_a_ned2lists(self):
         ned_file_name = TEST_CODE_DIR + '/../unit-resources/nsfnetbw/Network_nsfnetbw.ned'
-        self.__class__.connections, self.__class__.num_nodes, self.__class__.link_capacity_dict = \
+        self.__class__.connections_lists, self.__class__.num_nodes, self.__class__.link_capacity_dict = \
             tfr_utils.ned2lists(ned_file_name)
         assert (self.__class__.num_nodes == 14)
-        assert (self.__class__.connections == [[1, 3, 2], [0, 2, 7], [0, 1, 5], [0, 4, 8],
-                                               [3, 5, 6], [2, 4, 12, 13], [4, 7], [1, 6, 10],
-                                               [3, 9, 11], [8, 10, 12], [7, 9, 11, 13], [8, 10, 12],
-                                               [5, 9, 11], [5, 10]])
+        assert (self.__class__.connections_lists == [[1, 3, 2], [0, 2, 7], [0, 1, 5], [0, 4, 8],
+                                                     [3, 5, 6], [2, 4, 12, 13], [4, 7], [1, 6, 10],
+                                                     [3, 9, 11], [8, 10, 12], [7, 9, 11, 13], [8, 10, 12],
+                                                     [5, 9, 11], [5, 10]])
 
         assert (self.__class__.link_capacity_dict == {'0:1': 10, '0:3': 10, '0:2': 10, '1:2': 10,
                                                       '1:7': 10, '2:5': 10, '3:4': 40, '3:8': 10,
@@ -47,7 +50,7 @@ class TestTFRecords(unittest.TestCase):
                                                       '9:10': 10, '9:12': 10, '10:11': 10,
                                                       '10:13': 10, '11:12': 10})
 
-    def test_2_load_routing(self):
+    def test_b_load_routing(self):
         routing_file = TEST_CODE_DIR + '/../unit-resources/nsfnetbw/Routing.txt'
         routing_expected = np.array([[-1, 0, 2, 1, 1, 2, 1, 0, 1, 1, 0, 1, 2, 2],
                                      [0, -1, 1, 0, 2, 1, 2, 2, 0, 2, 2, 2, 1, 1],
@@ -64,13 +67,13 @@ class TestTFRecords(unittest.TestCase):
                                      [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, -1, 0],
                                      [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, -1]])
 
-        self.__class__.routing = tfr_utils.get_routing_matrix(routing_file)
-        np.testing.assert_array_equal(self.routing, routing_expected)
+        self.__class__.routing_mtrx = tfr_utils.get_routing_matrix(routing_file)
+        np.testing.assert_array_equal(self.routing_mtrx, routing_expected)
 
-    def test_3_make_paths(self):
+    def test_c_make_paths(self):
         self.__class__.paths, self.__class__.link_capacities = \
-            tfr_utils.make_paths(self.__class__.routing,
-                                 self.__class__.connections,
+            tfr_utils.make_paths(self.__class__.routing_mtrx,
+                                 self.__class__.connections_lists,
                                  self.__class__.link_capacity_dict)
 
         paths_expected = [[0], [1], [2], [2, 10], [1, 8], [2, 10, 14], [0, 5], [2, 11], [2, 11, 25],
@@ -108,9 +111,9 @@ class TestTFRecords(unittest.TestCase):
         assert (self.__class__.paths == paths_expected)
         assert (self.__class__.link_capacities == link_capacities_expected)
 
-    def test_4_extract_links(self):
+    def test_d_extract_links(self):
         self.__class__.links, self.__class__.capacities_links = tfr_utils.extract_links(
-            self.__class__.num_nodes, self.__class__.connections, self.__class__.link_capacity_dict)
+            self.__class__.num_nodes, self.__class__.connections_lists, self.__class__.link_capacity_dict)
 
         links_expected = [(0, 1), (0, 2), (0, 3), (1, 0), (1, 2), (1, 7), (2, 0), (2, 1), (2, 5),
                           (3, 0), (3, 4), (3, 8), (4, 3), (4, 5), (4, 6), (5, 2), (5, 4), (5, 12),
@@ -120,7 +123,7 @@ class TestTFRecords(unittest.TestCase):
 
         assert (self.__class__.links == links_expected)
 
-    def test_5_get_corresponding_values(self):
+    def test_e_get_corresponding_values(self):
         self.__class__.rslt_pos_gnrtr = \
             tfr_utils.ResultsPositionGenerator(self.__class__.num_nodes)
         with open(TEST_CODE_DIR + '/../unit-resources/nsfnetbw/simulationResult.txt') as result_file:
@@ -215,7 +218,7 @@ class TestTFRecords(unittest.TestCase):
                 np.testing.assert_array_equal(self.__class__.delays, delays_expected)
                 np.testing.assert_allclose(self.__class__.jitters, jitters_expected, atol=1e-05)
 
-    def test_6_make_indices(self):
+    def test_f_make_indices(self):
         self.__class__.link_indices, self.__class__.path_indices, self.__class__.sequ_indices = \
             tfr_utils.make_indices(self.__class__.paths)
 
@@ -291,7 +294,21 @@ class TestTFRecords(unittest.TestCase):
         assert (self.__class__.path_indices == path_indices_expected)
         assert (self.__class__.sequ_indices == sequ_indices_expected)
 
-    def test_7_write_tfrecord(self):
+    def test_g_make_tfrecord(self):
+
+        tfr_utils.make_tfrecord(TEST_CODE_DIR + '/../unit-resources/nsfnetbw/',
+                                'test_results.tfrecords',
+                                self.__class__.connections_lists,
+                                self.__class__.num_nodes,
+                                self.__class__.link_capacity_dict,
+                                self.__class__.routing_mtrx,
+                                open(TEST_CODE_DIR + '/../unit-resources/nsfnetbw/simulationResult.txt',
+                                     mode='rb'))
+
+        assert(os.path.exists(self.tf_rcrds_fl_nm))
+        os.remove(self.tf_rcrds_fl_nm)
+
+    def test_h_write_tfrecord(self):
         num_paths = len(self.__class__.paths)
         num_links = max(max(self.__class__.paths)) + 1
         n_total = len(self.__class__.path_indices)
@@ -311,7 +328,7 @@ class TestTFRecords(unittest.TestCase):
 
         assert(os.path.exists(self.tf_rcrds_fl_nm))
 
-    def test_8_read_dataset(self):
+    def test_i_read_dataset(self):
         with tf.compat.v1.Session() as sess:
             data_set = tfr_utils.read_dataset(self.tf_rcrds_fl_nm)
             # TODO https://stackoverflow.com/questions/57725172/iterating-over-a-dataset-tf-2-0-with-for-loop
@@ -372,9 +389,17 @@ class TestTFRecords(unittest.TestCase):
             link_capacity_val = (link_capacity_val[0] * 40.0) + 25.0
             np.testing.assert_array_equal(link_capacity_val,
                                           np.array(self.__class__.link_capacities))
+        os.remove(self.tf_rcrds_fl_nm)
+
+    def test_j_process_data(self):
+        tfr_utils.process_data(self.network_data_dir, te_split=0.5)
+        assert(os.path.exists(self.tf_rcrds_dir +
+                              '/train/results_nsfnetbw_9_Routing_SP_k_0.tfrecords'))
+        assert (os.path.exists(self.tf_rcrds_dir +
+                               '/evaluate/results_nsfnetbw_9_Routing_SP_k_1.tfrecords'))
+        shutil.rmtree(self.tf_rcrds_dir,ignore_errors=True)
+
 
     @classmethod
     def tearDownClass(cls):
-        os.remove(cls.tf_rcrds_fl_nm)
-
-
+        pass

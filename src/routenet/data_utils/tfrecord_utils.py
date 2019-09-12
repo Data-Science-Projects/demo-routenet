@@ -38,27 +38,28 @@ def process_data(network_data_dir, te_split=0.8):
     `network_data_dir`, where the TensorFlow data files are named corresponding to the results data
     file from which the data was processed.
 
-    :param network_data_dir: The source directory for the network data to be processed.
+    :param network_data_dir: The source directory for the network data to be processed, and the
+    directory within which the TF records are created.
     :param te_split: The percentage of data that should be written to the training data set,
                     with the remainder written to an evaluation data set.
     :return: None
     """
-    # The directory is assumed to have a trailing '/', so make sure it does. It does not
-    # matter if there are two, it does matter if there is not one at all.
-    network_data_dir = network_data_dir + '/'
-    network_name = network_data_dir.split('/')[-1]
-    if network_name == '':
-        network_name = network_data_dir.split('/')[-2]
+    # The directory is assumed to have a trailing '/', so make sure it does.
+    # TODO change to an assert and throw exception.
+    if network_data_dir[-1] != '/':
+        network_data_dir = network_data_dir + '/'
+    network_name = network_data_dir.split('/')[-2]
 
     ned_file_name = network_data_dir + 'Network_' + network_name + '.ned'
+    connections_lists, num_nodes, link_capacity_dict = ned2lists(ned_file_name)
 
     # Get all of the tar.gz results files in the network data directory
-    for results_file_name in glob.glob(network_data_dir + '/*.tar.gz'):
+    for results_bundle_file_name in glob.glob(network_data_dir + '/*.tar.gz'):
         # Construct the file name for the TF records
-        tf_file_name = results_file_name.split('/')[-1].split('.')[0] + '.tfrecords'
+        tf_file_name = results_bundle_file_name.split('/')[-1].split('.')[0] + '.tfrecords'
 
         # Open the network results data tar.gz
-        tar_file = tarfile.open(results_file_name, 'r:gz')
+        tar_file = tarfile.open(results_bundle_file_name, 'r:gz')
 
         tar_info = tar_file.next()
         if not tar_info.isdir():
@@ -66,9 +67,16 @@ def process_data(network_data_dir, te_split=0.8):
 
         results_file = tar_file.extractfile(tar_info.name + '/simulationResults.txt')
         routing_file = tar_file.extractfile(tar_info.name + '/Routing.txt')
+        routing_mtrx = get_routing_matrix(routing_file)
 
         tf.logging.info('Starting ', results_file)
-        make_tfrecord(network_data_dir, tf_file_name, ned_file_name, routing_file, results_file)
+        make_tfrecord(network_data_dir,
+                      tf_file_name,
+                      connections_lists,
+                      num_nodes,
+                      link_capacity_dict,
+                      routing_mtrx,
+                      results_file)
 
     tfr_dir_name = network_data_dir + '/tfrecords'
 
@@ -94,10 +102,14 @@ def process_data(network_data_dir, te_split=0.8):
         os.rename(file, tfr_eval_dir_name + file_name)
 
 
-def make_tfrecord(data_dir_path, tf_file_name, ned_file_name, routing_file, results_file):
-    connections_lists, num_nodes, link_capacity_dict = ned2lists(ned_file_name)
+def make_tfrecord(network_data_dir,
+                  tf_file_name,
+                  connections_lists,
+                  num_nodes,
+                  link_capacity_dict,
+                  routing_mtrx,
+                  results_file):
 
-    routing_mtrx = get_routing_matrix(routing_file)
     paths, link_capacities = make_paths(routing_mtrx, connections_lists, link_capacity_dict)
 
     num_paths = len(paths)
@@ -106,7 +118,7 @@ def make_tfrecord(data_dir_path, tf_file_name, ned_file_name, routing_file, resu
     link_indices, path_indices, sequ_indices = make_indices(paths)
     n_total = len(path_indices)  # TODO what is n_total of?
 
-    tfrecords_dir = data_dir_path + '/tfrecords/'
+    tfrecords_dir = network_data_dir + '/tfrecords/'
 
     if not os.path.exists(tfrecords_dir):
         os.makedirs(tfrecords_dir)
@@ -170,7 +182,7 @@ def ned2lists(ned_file_name):
     corresponds to a list of other nodes connected to the node at that position in the
     connections_lists, for example [[1, 3, 2], [0, 2, 7], ...] means that node0 is connected to
     nodes 1, 3 and 2, and that node 1 is connected to nodes 0, 2 and 7. The order of the nodes in
-    the sub-lists is defined by the order in which the `connections:` in the .ned file appears,
+    the sub-lists is defined by the order in which the `connections_lists:` in the .ned file appears,
     which is in the order of the port number, so, for example, node0 is connected to node1 via
     port0, which is shown by `node0.port[0] <--> Channel10kbps <--> node1.port[0];` in the .ned
     file.
@@ -295,8 +307,8 @@ def gen_path(routing_mtrx, source, destination, connections_lists):
         yield source
         # The value of routing[source, destination] is the port number of the source for the path
         # from the source to the destination.
-        # The value of connections[source] is the list of other nodes to which the source node
-        # has connections, in order of port number.
+        # The value of connections_lists[source] is the list of other nodes to which the source node
+        # has connections_lists, in order of port number.
         # Applying the port number as the index for the list of other nodes means that source
         # is then the value of one of the nodes to which source has a path, which is then yielded
         # also, up tp the point where the destination is encountered, when the while loop ends and
@@ -328,9 +340,9 @@ def extract_links(num_nodes, connections, link_capacity_dict):
     # Given the adjacency matrix, construct a directed graph.
     graph = nx.from_numpy_array(grph_adjcny_mtrx, create_using=nx.DiGraph())
     # From the graph, "Edges are represented as links between nodes ...". The links is a list
-    # of tuples representing the connections from node n to node m, and node m to node n.
+    # of tuples representing the connections_lists from node n to node m, and node m to node n.
     links = list(graph.edges)
-    # The link_capacities is a list of the capacities of the links in order of the the connections
+    # The link_capacities is a list of the capacities of the links in order of the the connections_lists
     # in links.
     link_capacities = []
     # The links are duplicated from n to m and m to n, so they must have the same capacity in both

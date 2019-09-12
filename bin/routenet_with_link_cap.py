@@ -412,7 +412,7 @@ def ned2lists(fname):
 
     n=max(map(max, channels))+1
     connections = [{} for i in range(n)]
-    # Shape of connections[node][port] = node connected to
+    # Shape of connections_lists[node][port] = node connected to
     for c in channels:
         connections[c[0]][c[1]]=c[2]
         connections[c[2]][c[3]]=c[0]
