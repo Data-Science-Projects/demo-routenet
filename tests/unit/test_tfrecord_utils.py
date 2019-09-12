@@ -393,11 +393,16 @@ class TestTFRecords(unittest.TestCase):
 
     def test_j_process_data(self):
         tfr_utils.process_data(self.network_data_dir, te_split=0.5)
+        # Which file ends up in which directory varies between macOS and Linux.
         assert(os.path.exists(self.tf_rcrds_dir +
-                              '/train/results_nsfnetbw_9_Routing_SP_k_0.tfrecords'))
+                              '/train/results_nsfnetbw_9_Routing_SP_k_0.tfrecords') |
+               os.path.exists(self.tf_rcrds_dir +
+                              '/train/results_nsfnetbw_9_Routing_SP_k_1.tfrecords'))
         assert (os.path.exists(self.tf_rcrds_dir +
+                               '/evaluate/results_nsfnetbw_9_Routing_SP_k_0.tfrecords') |
+                os.path.exists(self.tf_rcrds_dir +
                                '/evaluate/results_nsfnetbw_9_Routing_SP_k_1.tfrecords'))
-        shutil.rmtree(self.tf_rcrds_dir,ignore_errors=True)
+        shutil.rmtree(self.tf_rcrds_dir, ignore_errors=True)
 
 
     @classmethod
