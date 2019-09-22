@@ -1,12 +1,25 @@
-This fork is the part of the joint 
-[MSc. in AI and Deep Learning](https://master-artificialintelligence.com) dissertation project for 
+# RouteNet - Review and Implementation of Analysis and Use Cases
+
+RouteNet is presented in the paper 
+[Unveiling the potential of Graph Neural Networks for network modeling and optimization in SDN](https://arxiv.org/abs/1901.08113). 
+This project is an implementation focused exploration of RoutNet in detail, 
+as part of the joint [MSc. in AI and Deep Learning](https://master-artificialintelligence.com) dissertation project for 
 [Nathan Sowatskey](https://www.linkedin.com/in/nathansowatskey/) 
 and [Ana Matute](https://www.linkedin.com/in/ana-matute-06330118a/).
 
-The original content is based on the demo paper [Challenging the generalization capabilities of Graph 
-Neural Networks for network modeling](https://github.com/knowledgedefinednetworking/demo-routenet) 
+This project started as a GitHub fork of the demo paper 
+[Challenging the generalization capabilities of Graph Neural Networks for network modeling](https://github.com/knowledgedefinednetworking/demo-routenet) 
 by J. Suárez-Varela, S. Carol-Bosch, K. Rusek, P. Almasan, M. Arias, P. Barlet-Ros and 
 A. Cabellos-Aparicio.
+
+## What is RouteNet?
+
+From the seminal [paper](https://arxiv.org/abs/1901.08113):
+
+*... RouteNet, a pioneering network model based on Graph Neural Networks (GNN), ... able to 
+understand the complex relationship between topology, routing and input traffic to produce accurate 
+estimates of the per-source/des- tination pair mean delay and jitter, ... to generalize over 
+arbitrary topologies, routing schemes and variable traffic intensity.*
 
 # Project Structure and Admin
 
