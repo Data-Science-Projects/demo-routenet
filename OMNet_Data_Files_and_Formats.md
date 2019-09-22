@@ -1,4 +1,4 @@
-# Datasets
+# OMNet++ Datasets
 
 The code in this package processes network data into formats suitable for modelling and predictions
 using TensorFlow. The source files and formats of the data are described below. These files are
@@ -12,7 +12,7 @@ including the link capacities. This file is used with [OMNeT++](https://omnetpp.
 topology and simulate the network as described in [TODO](TODO).
 
 The exanmple contents below are from the 
-[Network_nsfnetbw.ned](../../../tests/unit-resources/nsfnetbw/Network_nsfnetbw.ned) file:
+[Network_nsfnetbw.ned](tests/unit-resources/nsfnetbw/Network_nsfnetbw.ned) file:
 
 ```
 package netsimulator;
@@ -101,8 +101,8 @@ Routing_matrix(src node, dst node) = output port to reach the dst node from the 
 Note that the diagonal of the matrix is -1. 
 
 The exanmple contents below are from the 
-[Routing.txt](../../../tests/unit-resources/nsfnetbw/Routing.txt) file corresponding to the
-[Network_nsfnetbw.ned](../../../tests/unit-resources/nsfnetbw/Network_nsfnetbw.ned) file:
+[Routing.txt](tests/unit-resources/nsfnetbw/Routing.txt) file corresponding to the
+[Network_nsfnetbw.ned](tests/unit-resources/nsfnetbw/Network_nsfnetbw.ned) file:
 ```
 -1,0,2,1,1,2,1,0,1,1,0,1,2,2,
 0,-1,1,0,2,1,2,2,0,2,2,2,1,1,
@@ -129,7 +129,7 @@ The first row represents `node0`, where the path to `node1` is via `port0`, to `
 which is also reached via `port1`), and so on.
 
 In the 
-[Network_nsfnetbw.ned](../../../tests/unit-resources/nsfnetbw/Network_nsfnetbw.ned) file the
+[Network_nsfnetbw.ned](tests/unit-resources/nsfnetbw/Network_nsfnetbw.ned) file the
 corresponding entries are:
 
 ```
@@ -139,7 +139,7 @@ node0.port[2] <--> Channel10kbps <--> node2.port[0];
 ```
 
 Where we can see that the connection from `node0.port[0]` goes into `node1.port[0]`, so, in the
-[Routing.txt](../../../tests/unit-resources/nsfnetbw/Routing.txt), we also see that, in the second row, for 
+[Routing.txt](tests/unit-resources/nsfnetbw/Routing.txt), we also see that, in the second row, for 
 `node1`, the connection to `node0` is vi` `port0`.
 
 ### simulationResults.txt 

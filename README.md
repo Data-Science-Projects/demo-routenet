@@ -1,21 +1,9 @@
-# RouteNet - Review and Implementation of Analysis and Use Cases
-
-RouteNet is presented in the paper 
-[Unveiling the potential of Graph Neural Networks for network modeling and optimization in SDN](https://arxiv.org/abs/1901.08113). 
-This project is an implementation focused exploration of RoutNet in detail, 
-as part of the joint [MSc. in AI and Deep Learning](https://master-artificialintelligence.com) dissertation project for 
-[Nathan Sowatskey](https://www.linkedin.com/in/nathansowatskey/) 
-and [Ana Matute](https://www.linkedin.com/in/ana-matute-06330118a/).
-
-This project started as a GitHub fork of the demo paper 
-[Challenging the generalization capabilities of Graph Neural Networks for network modeling](https://github.com/knowledgedefinednetworking/demo-routenet) 
-by J. Suárez-Varela, S. Carol-Bosch, K. Rusek, P. Almasan, M. Arias, P. Barlet-Ros and 
-A. Cabellos-Aparicio.
+# Understanding RouteNet - Review and Implementation of RouteNet Evaluation and Use Cases
 
 ## Abstract
 
-This project is an implementation centric approach to understanding and illustrating RouteNet. It
-has the following aims:
+This project is an implementation centric approach to understanding and illustrating 
+[RouteNet](https://arxiv.org/abs/1901.08113)). This project has the following aims:
 
  - Repackage the original 
  [RouteNet demo code](https://github.com/knowledgedefinednetworking/demo-routenet/tree/master/code) 
@@ -31,12 +19,48 @@ has the following aims:
 
 ## What is RouteNet?
 
-From the seminal [paper](https://arxiv.org/abs/1901.08113):
+From the seminal paper 
+[Unveiling the potential of Graph Neural Networks for network modeling and optimization in SDN](https://arxiv.org/abs/1901.08113):
 
 *... RouteNet, a pioneering network model based on Graph Neural Networks (GNN), ... able to 
 understand the complex relationship between topology, routing and input traffic to produce accurate 
 estimates of the per-source/destination pair mean delay and jitter, ... to generalize over 
 arbitrary topologies, routing schemes and variable traffic intensity.*
+
+## Authors
+
+This project is part of the joint 
+[MSc. in AI and Deep Learning](https://master-artificialintelligence.com) 
+dissertation project for [Nathan Sowatskey](https://www.linkedin.com/in/nathansowatskey/) 
+and [Ana Matute](https://www.linkedin.com/in/ana-matute-06330118a/).
+
+## Origins
+
+This project started as a GitHub fork of the demo paper 
+[Challenging the generalization capabilities of Graph Neural Networks for network modeling](https://github.com/knowledgedefinednetworking/demo-routenet) 
+by J. Suárez-Varela, S. Carol-Bosch, K. Rusek, P. Almasan, M. Arias, P. Barlet-Ros and 
+A. Cabellos-Aparicio.
+
+## Quickstart
+
+The original authors of the 
+[demo paper](https://github.com/knowledgedefinednetworking/demo-routenet) provide a trained 
+RouteNet model, in the form of Tensor Flow (TF) checkpoints, which may be found in the 
+['trained_models' directory](trained_models)).
+
+The pre-trained model is based on 480K training samples, including 240K samples from the 
+[14-node NSF network topology](http://knowledgedefinednetworking.org/data/datasets_v0/nsfnet.tar.gz) 
+
+![14 Node NSF OMNet++ Topology](./assets/nsfnet_topology.png)
+
+and 240K samples from the 
+[50-node synthetically-generated topology](http://knowledgedefinednetworking.org/data/datasets_v0/synth50.tar.gz).
+
+[50-node synthetically-generated topology](./assets/synth50_topology.png)
+
+The pre-trained model can be loaded to make per-source/destination delay predictions on any sample 
+from the datasets, as demonstrated in the 
+[prediction demo Jupyter notebook](./demo_notebooks/prediction_demo.ipynb).
 
 # Project Structure and Admin
 
@@ -51,6 +75,7 @@ The RouteNet Python package is in the [src/routenet](src/routenet) directory.
 [Unit](tests/unit) and [Smoke tests](tests/smoke_tests) are in the [tests](tests) directory. 
 
 # RouteNet in Code
+
 The following figure shows a schematic representation of the internal architecture of RouteNet. In 
 this implementation, the input per-source/destination traffic is provided in the initial path 
 states, while the link capacity is added as an input feature in the initial link states.
@@ -59,22 +84,17 @@ states, while the link capacity is added as an input feature in the initial link
 
 This model is implemented in [routnet_model.py](src/routenet/model/routenet_model.py).
 
-# Data Pipline
+# OMnet++ Data Pipeline
+
+The original sample data sets produced by the [OMNet++](https://omnetpp.org) are described in 
+detail in [OMNet++ data files and formats]. How OMNet++ was used to produce these data sets is 
+outlined in section 4.1, "Simulation setup", of the [paper](https://arxiv.org/abs/1901.08113), but
+there is no public means to replicate that part of the experiment.
+
+
 
 All the datasets used in the demo are available in the following 
 [repository](https://github.com/knowledgedefinednetworking/NetworkModelingDatasets/tree/master/datasets_v0). This repository includes a detailed description on how to process the datasets.
- 
-Moreover, we provide a RouteNet model already trained 
-(in the ['trained_models' directory](trained_models)) that can be directly loaded to make 
-accurate per-source/destination delay predictions on any sample from our datasets. In particular, 
-this model was trained over 480,000 training samples: 240,000 from the 14-node NSF network topology 
-and 240,000 from a 50-node synthetically-generated topology. You can find more details about the 
-topologies and the training samples used in the 
-[dataset repository](https://github.com/knowledgedefinednetworking/NetworkModelingDatasets/tree/master/datasets_v0).
-
-Lastly, we provide a Jupyter notebook that loads our model already trained and makes 
-per-source/destination delay predictions over arbitrary samples of our datasets 
-(in the [demo_notebooks directory](demo_notebooks)).
 
 ## Running RouteNet
 

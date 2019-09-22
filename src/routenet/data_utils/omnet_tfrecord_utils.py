@@ -30,7 +30,7 @@ def process_data(network_data_dir, te_split=0.8):
     and network simulation results, into TensorFlow data.
 
     For a given network, the source data files are in the `network_data_dir`. The files and
-    their contents are described in the Data_Files_and_Formats.md file in the same directory as
+    their contents are described in the OMNet_Data_Files_and_Formats.md file in the same directory as
     this code.
 
     The data in the source files is transformed into TensorFlow formats and written to
@@ -246,7 +246,7 @@ def ned2lists(ned_file_name):
 def get_routing_matrix(routing_file):
     """
     Reads the routing matrix from the routing file and returns a Numpy representation of the matrix.
-    :param routing_file: File containing routing matrix. See Data_Files_and_Formats.md.
+    :param routing_file: File containing routing matrix. See OMNet_Data_Files_and_Formats.md.
     :return: A Numpy representation of the routing matrix.
     """
     routing_df = pd.read_csv(routing_file, header=None, index_col=False)
