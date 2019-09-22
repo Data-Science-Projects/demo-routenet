@@ -12,7 +12,7 @@ from __future__ import print_function
 
 import tensorflow as tf
 
-import routenet.data_utils.tfrecord_utils as tfr_utils
+import routenet.data_utils.omnet_tfrecord_utils as tfr_utils
 from routenet.model.routenet_model import RouteNetModel
 
 

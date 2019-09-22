@@ -9,7 +9,7 @@ import unittest
 import numpy as np
 import tensorflow as tf
 
-import routenet.data_utils.tfrecord_utils as tfr_utils
+import routenet.data_utils.omnet_tfrecord_utils as tfr_utils
 
 TEST_CODE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -132,7 +132,6 @@ class TestTFRecords(unittest.TestCase):
                 self.__class__.traffic_bw_txs, self.__class__.delays, self.__class__.jitters = \
                     tfr_utils.get_corresponding_values(self.__class__.rslt_pos_gnrtr,
                                                        self.__class__.result_data,
-                                                       self.__class__.num_nodes,
                                                        len(self.__class__.paths))
 
                 traffic_bw_txs_expected = np.array(
@@ -316,7 +315,6 @@ class TestTFRecords(unittest.TestCase):
 
         tfr_utils.write_tfrecord(self.__class__.result_data,
                                  self.__class__.rslt_pos_gnrtr,
-                                 self.__class__.num_nodes,
                                  num_paths,
                                  self.__class__.link_capacities,
                                  self.__class__.link_indices,
