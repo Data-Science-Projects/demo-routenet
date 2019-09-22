@@ -12,42 +12,54 @@ This project started as a GitHub fork of the demo paper
 by J. Suárez-Varela, S. Carol-Bosch, K. Rusek, P. Almasan, M. Arias, P. Barlet-Ros and 
 A. Cabellos-Aparicio.
 
+## Abstract
+
+This project is an implementation centric approach to understanding and illustrating RouteNet. It
+has the following aims:
+
+ - Repackage the original 
+ [RouteNet demo code](https://github.com/knowledgedefinednetworking/demo-routenet/tree/master/code) 
+ as a Python pckage, suitable for use in production environments, with documented code, unit tests, 
+ smoke tests, automated builds and other features expected of production ready code.
+ - Implement, and seek to replicate, the original findings for delay and jitter in section 
+ 4 "EVALUATION OF THE ACCURACY OF THE GNN MODEL" from the 
+ [RouteNet paper](https://arxiv.org/abs/1901.08113)
+ - Implement the use cases discussed in section 5 of the paper. 
+ [RouteNet paper](https://arxiv.org/abs/1901.08113)  
+ - Given the above as a baseline against which to test and compare, implement a data pipeline 
+ suitable for ingesting data from sources other than the original OMNet++ network simulator. 
+
 ## What is RouteNet?
 
 From the seminal [paper](https://arxiv.org/abs/1901.08113):
 
 *... RouteNet, a pioneering network model based on Graph Neural Networks (GNN), ... able to 
 understand the complex relationship between topology, routing and input traffic to produce accurate 
-estimates of the per-source/des- tination pair mean delay and jitter, ... to generalize over 
+estimates of the per-source/destination pair mean delay and jitter, ... to generalize over 
 arbitrary topologies, routing schemes and variable traffic intensity.*
 
 # Project Structure and Admin
 
 This project has a [Travis Build](https://travis-ci.com/Data-Science-Projects/demo-routenet).
 
-## Abstract
-Today, network operators still lack functional network models able to make accurate predictions of 
-end-to-end Key Performance Indicators (e.g., delay or jitter) at limited cost. Recently, a novel 
-Graph Neural Network (GNN) model called RouteNet was proposed as a cost-effective alternative to 
-estimate the per-source/destination pair mean delay and jitter in networks. Thanks to its GNN 
-architecture that operates over graph-structured data, RouteNet revealed an unprecedented ability 
-to learn and model the complex relationships among topology, routing and input traffic in networks. 
-As a result, it was able to make performance predictions with similar accuracy than resource-hungry 
-packet-level simulators even in network scenarios unseen during training. In this demo, we challenge 
-the generalization capabilities of RouteNet with more complex scenarios, including larger 
-topologies.
- 
-<!-- Add BibTex citation to paper -->
- 
-## Description
-In this demo, we extended the original implementation of RouteNet to support different link 
-capacities. The code of RouteNet used in the demo is available in the ['src' directory](src).
+## The RouteNet Python Package
 
+The RouteNet Python package is in the [src/routenet](src/routenet) directory.
+
+## Unit and Smoke Tests
+
+[Unit](tests/unit) and [Smoke tests](tests/smoke_tests) are in the [tests](tests) directory. 
+
+# RouteNet in Code
 The following figure shows a schematic representation of the internal architecture of RouteNet. In 
 this implementation, the input per-source/destination traffic is provided in the initial path 
 states, while the link capacity is added as an input feature in the initial link states.
 
 ![Internal architecture of RouteNet](./assets/routenet_architecture.png)
+
+This model is implemented in [routnet_model.py](src/routenet/model/routenet_model.py).
+
+# Data Pipline
 
 All the datasets used in the demo are available in the following 
 [repository](https://github.com/knowledgedefinednetworking/NetworkModelingDatasets/tree/master/datasets_v0). This repository includes a detailed description on how to process the datasets.
