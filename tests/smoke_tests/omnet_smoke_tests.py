@@ -74,17 +74,17 @@ class SmokeTest(unittest.TestCase):
     """
 
     def do_predict(self, data_set_name):
-        # Path to downloaded datasets
-
-        test_file = (self.data_dir_root + data_set_name +
-                     '/tfrecords/train/results_' + data_set_name + '_9_Routing_SP_k_1.tfrecords')
+        omnet_data_dir = os.getenv('OMNET_DATA_DIR')
+        train_data_path = omnet_data_dir + '/' + data_set_name + '/tfrecords/train/'
+        train_data_filename = random.choice(os.listdir(train_data_path))
+        sample_file = train_data_path + train_data_filename
 
         graph_predict = tf.Graph()
         with graph_predict.as_default():
             model = RouteNetModel()
             model.build()
 
-            data_set = read_dataset(test_file, target='delay')
+            data_set = read_dataset(sample_file, target='delay')
             itrtr = data_set.make_initializable_iterator()
             features, label = itrtr.get_next()
 

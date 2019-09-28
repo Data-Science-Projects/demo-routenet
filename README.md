@@ -56,7 +56,7 @@ The pre-trained model is based on 480K training samples, including 240K samples 
 and 240K samples from the 
 [50-node synthetically-generated topology](http://knowledgedefinednetworking.org/data/datasets_v0/synth50.tar.gz).
 
-[50-node synthetically-generated topology](./assets/synth50_topology.png)
+![50-node synthetically-generated topology](./assets/synth50_topology.png)
 
 The pre-trained model can be loaded to make per-source/destination delay predictions on any sample 
 from the datasets, as demonstrated in the 

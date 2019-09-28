@@ -7,6 +7,9 @@
 # [^2]: Universitat Politècnica de Catalunya, Computer Architecture
 #     department, Barcelona, Spain. Email: almasan@ac.upc.edu
 
+"""
+The functions here execute the training steps for the RouteNetModel.
+"""
 
 from __future__ import print_function
 

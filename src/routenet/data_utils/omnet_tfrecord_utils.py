@@ -9,6 +9,8 @@
 
 """
 Utilities to transform the data produced by the OMNeT++ network simulator into TF Records.
+TODO These functions should be refactored in to a class so as to use member variables instead
+of passing around data from one funtion to another.
 """
 
 import glob
@@ -447,10 +449,7 @@ class ResultsPositionGenerator:
 
 
 def parse(serialized, target='delay'):
-    """
-    Target is the name of predicted variable
-    """
-
+    # Target is the name of predicted variable
     # TODO 'traffic' below is bandwidth of traffic transmitted
     with tf.device('/cpu:0'):
         with tf.name_scope('parse'):
@@ -469,16 +468,16 @@ def parse(serialized, target='delay'):
                                                             'n_total': tf.io.FixedLenFeature([],
                                                                                              tf.int64)})
 
-            for k in ['traffic', target, 'link_capacity', 'links', 'paths', 'sequences']:
+            for feature in ['traffic', target, 'link_capacity', 'links', 'paths', 'sequences']:
                 # TODO This is a form of normalisation, but why these values? Factor into
                 # discrete functions.
-                features[k] = tf.sparse.to_dense(features[k])
-                if k == 'delay':
-                    features[k] = (features[k] - 0.37) / 0.54
-                if k == 'traffic':
-                    features[k] = (features[k] - 0.17) / 0.13
-                if k == 'link_capacity':
-                    features[k] = (features[k] - 25.0) / 40.0
+                features[feature] = tf.sparse.to_dense(features[feature])
+                if feature == 'delay':
+                    features[feature] = (features[feature] - 0.37) / 0.54
+                if feature == 'traffic':
+                    features[feature] = (features[feature] - 0.17) / 0.13
+                if feature == 'link_capacity':
+                    features[feature] = (features[feature] - 25.0) / 40.0
 
     return {k: v for k, v in features.items() if k is not target}, features[target]
 
