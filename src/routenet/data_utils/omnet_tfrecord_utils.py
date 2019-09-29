@@ -472,7 +472,7 @@ def parse(serialized, target='delay'):
                 # TODO This is a form of normalisation, but why these values? Factor into
                 # discrete functions.
                 features[feature] = tf.sparse.to_dense(features[feature])
-                if feature == 'delay':
+                if feature == 'delay' and feature != target:
                     features[feature] = (features[feature] - 0.37) / 0.54
                 if feature == 'traffic':
                     features[feature] = (features[feature] - 0.17) / 0.13

@@ -51,12 +51,12 @@ RouteNet model, in the form of Tensor Flow (TF) checkpoints, which may be found 
 The pre-trained model is based on 480K training samples, including 240K samples from the 
 [14-node NSF network topology](http://knowledgedefinednetworking.org/data/datasets_v0/nsfnet.tar.gz) 
 
-![14 Node NSF OMNet++ Topology](./assets/nsfnet_topology.png)
+![14 Node NSF OMNet++ Topology](demo_notebooks/assets/nsfnet_topology.png)
 
 and 240K samples from the 
 [50-node synthetically-generated topology](http://knowledgedefinednetworking.org/data/datasets_v0/synth50.tar.gz).
 
-![50-node synthetically-generated topology](./assets/synth50_topology.png)
+![50-node synthetically-generated topology](demo_notebooks/assets/synth50_topology.png)
 
 The pre-trained model can be loaded to make per-source/destination delay predictions on any sample 
 from the datasets, as demonstrated in the 
@@ -80,7 +80,7 @@ The following figure shows a schematic representation of the internal architectu
 this implementation, the input per-source/destination traffic is provided in the initial path 
 states, while the link capacity is added as an input feature in the initial link states.
 
-![Internal architecture of RouteNet](./assets/routenet_architecture.png)
+![Internal architecture of RouteNet](demo_notebooks/assets/routenet_architecture.png)
 
 This model is implemented in [routnet_model.py](src/routenet/model/routenet_model.py).
 
@@ -191,9 +191,9 @@ As an example, we provide below two figures that show the evolution of the loss
 (Mean Absolute Error) and the accuracy (Pearson correlation coefficient) of the RouteNet model 
 that is provided in the ['trained_models' directory](trained_models).
 
-![Loss of the model w.r.t. the training steps](./assets/loss_routenet.jpg)
+![Loss of the model w.r.t. the training steps](demo_notebooks/assets/loss_routenet.jpg)
 
-![Pearson correlation coefficient of the model w.r.t. the training steps](./assets/accuracy_routenet.jpg)
+![Pearson correlation coefficient of the model w.r.t. the training steps](demo_notebooks/assets/accuracy_routenet.jpg)
 
 This model was trained with samples of the 14-node NSFNET and the 50-node topologies, 
 and was evaluated over samples of the Geant2 topology.

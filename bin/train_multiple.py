@@ -21,14 +21,14 @@ nsfnetbw_eval_files_list = glob.glob(omnet_data_dir + '/nsfnetbw/tfrecords/evalu
 synth50bw_eval_files_list = glob.glob(omnet_data_dir + '/synth50bw/tfrecords/evaluate/*.tfrecords')
 eval_files_list = nsfnetbw_eval_files_list + synth50bw_eval_files_list
 
-model_chkpnt_dir = '../model_checkpoints/'
+model_chkpnt_dir = '../model_checkpoints-imac/'
 
 shutil.rmtree(model_chkpnt_dir, ignore_errors=True)
 
 rn_train.train_and_evaluate(model_dir=model_chkpnt_dir,
                             train_files=train_files_list,
-                            shuffle_buf=30,
+                            shuffle_buf=30000,
                             target='delay',
-                            train_steps=100,
+                            train_steps=100000,
                             eval_files=eval_files_list,
                             warm_start_from=None)
