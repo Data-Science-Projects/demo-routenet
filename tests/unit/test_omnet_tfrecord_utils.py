@@ -349,8 +349,8 @@ class TestTFRecords(unittest.TestCase):
             assert (set(features_keys) == test_dict_keys)
 
             label_val = label.eval()
-            label_val = (label_val[0] * 0.54) + 0.37
-            np.testing.assert_allclose(label_val, np.array(self.__class__.delays), atol=1e-05)
+            # label_val = (label_val[0] * 0.54) + 0.37
+            np.testing.assert_allclose(label_val[0], np.array(self.__class__.delays))
 
             sess.run(itrtr.initializer)
             links_val = features['links'].eval()
