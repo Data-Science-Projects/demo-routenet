@@ -21,7 +21,7 @@ nsfnetbw_eval_files_list = glob.glob(omnet_data_dir + '/nsfnetbw/tfrecords/evalu
 synth50bw_eval_files_list = glob.glob(omnet_data_dir + '/synth50bw/tfrecords/evaluate/*.tfrecords')
 eval_files_list = nsfnetbw_eval_files_list + synth50bw_eval_files_list
 
-model_chkpnt_dir = '../model_checkpoints-imac/'
+model_chkpnt_dir = '../model_checkpoints-no_delay_norm/'
 
 shutil.rmtree(model_chkpnt_dir, ignore_errors=True)
 

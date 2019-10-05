@@ -72,23 +72,23 @@ def get_model_readout(test_sample_file):
         # This is the reverse of the normalisation applied in the parse function in
         # omet_tfrecord_utils.
         # TODO the rationale for the normalisation has to be explained.
-        readout = 0.54 * readout + 0.37
+        # readout = 0.54 * readout + 0.37
 
         return graph, readout, data_set_itrtr, label
 
 
-def run_predictions(graph, readout, data_itrtr, true_value):
+def run_predictions(graph, readout, data_itrtr, true_value, checkpoint_id):
     with tf.compat.v1.Session(graph=graph) as sess:
         sess.run(tf.compat.v1.local_variables_initializer())
         sess.run(tf.compat.v1.global_variables_initializer())
         saver = tf.compat.v1.train.Saver()
         # Load the weights from the checkpoint
-        saver.restore(sess, '../model_checkpoints-imac/model.ckpt-8151')
+        saver.restore(sess, '../model_checkpoints-no_delay_norm/model.ckpt-' + str(checkpoint_id))
 
         # We are going to take a median of a number of predictions
         predictions = []
-        # We run the model 50 times to predict delays based for the network represented by the sample
-        # data set.
+        # We run the model 50 times to predict delays based for the network represented by
+        # the sample data set.
         for _ in range(50):
             sess.run(data_itrtr.initializer)
             # The `true_delay` value here is the original delay value from the sample data set,
