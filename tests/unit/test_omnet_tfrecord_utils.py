@@ -31,7 +31,7 @@ class TestTFRecords(unittest.TestCase):
     result_data = []
     rslt_pos_gnrtr = None
     network_data_dir = TEST_CODE_DIR + '/../unit-resources/nsfnetbw/'
-    tf_rcrds_dir = network_data_dir + 'tfrecords/'
+    tf_rcrds_dir = network_data_dir + '/tfrecords/'
     tf_rcrds_fl_nm = tf_rcrds_dir + '/test_results.tfrecords'
 
     def test_a_ned2lists(self):
@@ -303,7 +303,8 @@ class TestTFRecords(unittest.TestCase):
                                 self.__class__.num_nodes,
                                 self.__class__.link_capacity_dict,
                                 self.__class__.routing_mtrx,
-                                open(TEST_CODE_DIR + '/../unit-resources/nsfnetbw/simulationResult.txt',
+                                open(TEST_CODE_DIR +
+                                     '/../unit-resources/nsfnetbw/simulationResult.txt',
                                      mode='rb'))
 
         assert(os.path.exists(self.tf_rcrds_fl_nm))

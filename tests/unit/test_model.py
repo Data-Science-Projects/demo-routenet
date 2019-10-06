@@ -16,17 +16,17 @@ from routenet.train.train import read_dataset
 # TODO This code should be refactored with the code in the rn_notebook_utils.py
 
 TEST_CODE_DIR = os.path.dirname(os.path.abspath(__file__))
+random.seed(13)
 
 
 class TestModel(unittest.TestCase):
 
+    data_dir_root = TEST_CODE_DIR + '/../unit-resources/'
     proj_dir_root = TEST_CODE_DIR + '/../../'
 
     def get_sample(self, network_name):
-        random.seed(13)
         # Path to data sets
-        omnet_data_dir = os.getenv('OMNET_DATA_DIR')
-        train_data_path = omnet_data_dir + '/' + network_name + '/tfrecords/train/'
+        train_data_path = self.data_dir_root + network_name + '/data/tfrecords/train/'
         train_data_filename = random.choice(os.listdir(train_data_path))
         sample_file = train_data_path + train_data_filename
         # print(sample_file.split('/')[-1])
@@ -46,8 +46,8 @@ class TestModel(unittest.TestCase):
 
             with tf.name_scope('predict'):
                 # The lamba construct below invokes RouteNetModel.call(features, training=True).
-                # The return value from the call(...) function is the readout Sequential() model, with
-                # training set to `True`.
+                # The return value from the call(...) function is the readout Sequential() model,
+                # with training set to `True`.
                 readout = tf.map_fn(lambda x: model(x, training=True), features, dtype=tf.float32)
 
             # Having called this on one set of features, we have an initialised readout.
@@ -61,7 +61,8 @@ class TestModel(unittest.TestCase):
 
             return graph, readout, data_set_itrtr, label
 
-    def run_predictions(self, graph, readout, data_itrtr, true_value, checkpoint_id, normalised_delay=True):
+    def run_predictions(self, graph, readout, data_itrtr, true_value, checkpoint_id,
+                        normalised_delay=True):
         with tf.compat.v1.Session(graph=graph) as sess:
             sess.run(tf.compat.v1.local_variables_initializer())
             sess.run(tf.compat.v1.global_variables_initializer())
