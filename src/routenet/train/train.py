@@ -13,9 +13,16 @@ The functions here execute the training steps for the RouteNetModel.
 
 from __future__ import print_function
 
+import sys
+
 import tensorflow as tf
 
 from routenet.model.routenet_model import RouteNetModel
+
+rn_default_checkpointing_config = tf.estimator.RunConfig(
+    save_checkpoints_secs=10 * 60,  # Save checkpoints every 10 minutes
+    keep_checkpoint_max=20  # Retain the 20 most recent checkpoints.
+)
 
 
 def train_and_evaluate(model_dir,
@@ -25,18 +32,14 @@ def train_and_evaluate(model_dir,
                        train_steps,
                        eval_files,
                        warm_start_from,
-                       model_hparams=RouteNetModel.default_hparams):
-
-    my_checkpointing_config = tf.estimator.RunConfig(
-        save_checkpoints_secs=10 * 60,  # Save checkpoints every 10 minutes
-        keep_checkpoint_max=20  # Retain the 10 most recent checkpoints.
-    )
+                       model_hparams=RouteNetModel.default_hparams,
+                       checkpointing_config=rn_default_checkpointing_config):
 
     estimator = tf.estimator.Estimator(model_fn=model_fn,
                                        model_dir=model_dir,
                                        params=model_hparams,
                                        warm_start_from=warm_start_from,
-                                       config=my_checkpointing_config)
+                                       config=checkpointing_config)
 
     train_spec = tf.estimator.TrainSpec(input_fn=
                                         lambda: tfrecord_input_fn(filenames=train_files,
@@ -121,6 +124,7 @@ def model_fn(features, labels, mode, params):
     :param params: Additional configuration
     :return: TBD
     """
+    print('******** in model_fn ******************', file=sys.stderr)
 
     model = RouteNetModel(params)
     model.build()
@@ -215,8 +219,9 @@ def parse(serialized, target='delay'):
                 # TODO This is a form of normalisation, but why these values? Factor into
                 # discrete functions.
                 features[feature] = tf.sparse.to_dense(features[feature])
-                # if feature == 'delay':
-                #    features[feature] = (features[feature] - 0.37) / 0.54
+                # TODO create switch for delay normalisation
+                if feature == 'delay':
+                    features[feature] = (features[feature] - 0.37) / 0.54
                 if feature == 'traffic':
                     features[feature] = (features[feature] - 0.17) / 0.13
                 if feature == 'link_capacity':

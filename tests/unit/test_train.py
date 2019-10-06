@@ -4,7 +4,10 @@ __author__ = 'nsowatsk@cisco.com'
 
 import glob
 import os
+import shutil
 import unittest
+
+import tensorflow as tf
 
 from routenet.model.routenet_model import RouteNetModel
 from routenet.train import train as rn_train
@@ -14,10 +17,10 @@ TEST_CODE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 class TestTrain(unittest.TestCase):
 
-    data_dir_root = TEST_CODE_DIR + '/../unit-resources/nsfnetbw/data/'
+    data_dir_root = TEST_CODE_DIR + '/../unit-resources/nsfnetbw/data/tfrecords/'
 
-    def test_tfrecord_input_fn(self):
-        train_files_list = glob.glob(self.data_dir_root + '/tfrecords/train/*.tfrecords')
+    def test_a_tfrecord_input_fn(self):
+        train_files_list = glob.glob(self.data_dir_root + '/train/*.tfrecords')
 
         sample = rn_train.tfrecord_input_fn(filenames=train_files_list,
                                             hparams=RouteNetModel.default_hparams,
@@ -45,3 +48,31 @@ class TestTrain(unittest.TestCase):
         assert(sample[0]['n_links'].op.type == 'AddN')
         assert(sample[0]['n_paths'].op.type == 'AddN')
         assert(sample[0]['n_total'].op.type == 'AddN')
+
+    def test_b_train(self):
+
+        train_files_list = glob.glob(self.data_dir_root + '/train/*.tfrecords')
+        eval_files_list = glob.glob(self.data_dir_root + '/evaluate/*.tfrecords')
+
+        model_chkpnt_dir = './model_checkpoints/'
+
+        shutil.rmtree(model_chkpnt_dir, ignore_errors=True)
+
+        test_checkpointing_config = tf.estimator.RunConfig(
+            save_checkpoints_secs=10,  # Save checkpoints every 10 secs
+            keep_checkpoint_max=20  # Retain the 20 most recent checkpoints.
+        )
+
+        rn_train.train_and_evaluate(model_dir=model_chkpnt_dir,
+                                    train_files=train_files_list,
+                                    shuffle_buf=3000,
+                                    target='delay',
+                                    train_steps=5,
+                                    eval_files=eval_files_list,
+                                    warm_start_from=None,
+                                    checkpointing_config=test_checkpointing_config)
+
+        assert (os.path.exists(model_chkpnt_dir + '/model.ckpt-5.data-00000-of-00001'))
+
+        shutil.rmtree(model_chkpnt_dir, ignore_errors=True)
+

@@ -29,7 +29,6 @@ class TestModel(unittest.TestCase):
         train_data_path = self.data_dir_root + network_name + '/data/tfrecords/train/'
         train_data_filename = random.choice(os.listdir(train_data_path))
         sample_file = train_data_path + train_data_filename
-        # print(sample_file.split('/')[-1])
         return sample_file
 
     def get_model_readout(self, test_sample_file, normalise_readout=True):
