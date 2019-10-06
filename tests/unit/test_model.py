@@ -95,8 +95,7 @@ class TestModel(unittest.TestCase):
 
             return median_prediction, true_val[0]
 
-    def test_a_nsfnetbw_predictions(self):
-        sample_file = self.get_sample('nsfnetbw')
+    def do_test_prediction(self, sample_file):
         graph, readout, data_set_itrtr, label = self.get_model_readout(sample_file)
         median_prediction, true_val = \
             self.run_predictions(graph, readout, data_set_itrtr, label, 54809)
@@ -104,3 +103,12 @@ class TestModel(unittest.TestCase):
         assert(mse < 0.00035)
         r2 = r2_score(median_prediction, true_val)
         assert(r2 > 0.98)
+
+    def test_a_nsfnetbw_predictions(self):
+        sample_file = self.get_sample('nsfnetbw')
+        self.do_test_prediction(sample_file)
+
+    def test_b_geant2bw_predictions(self):
+        sample_file = self.get_sample('geant2bw')
+        self.do_test_prediction(sample_file)
+
