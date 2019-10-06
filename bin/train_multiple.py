@@ -11,6 +11,8 @@ import shutil
 
 from routenet.train import train as rn_train
 
+NORM_DELAY = True
+
 omnet_data_dir = os.getenv('OMNET_DATA_DIR')
 
 nsfnetbw_train_files_list = glob.glob(omnet_data_dir + '/nsfnetbw/tfrecords/train/*.tfrecords')
@@ -21,7 +23,10 @@ nsfnetbw_eval_files_list = glob.glob(omnet_data_dir + '/nsfnetbw/tfrecords/evalu
 synth50bw_eval_files_list = glob.glob(omnet_data_dir + '/synth50bw/tfrecords/evaluate/*.tfrecords')
 eval_files_list = nsfnetbw_eval_files_list + synth50bw_eval_files_list
 
-model_chkpnt_dir = '../model_checkpoints-no_delay_norm/'
+if NORM_DELAY:
+    model_chkpnt_dir = '../model_checkpoints-with_delay_norm/'
+else:
+    model_chkpnt_dir = '../model_checkpoints-no_delay_norm/'
 
 shutil.rmtree(model_chkpnt_dir, ignore_errors=True)
 

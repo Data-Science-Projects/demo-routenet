@@ -33,8 +33,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 
-from routenet.data_utils.omnet_tfrecord_utils import read_dataset
 from routenet.model.routenet_model import RouteNetModel
+from routenet.train.train import read_dataset
 
 
 def get_sample(network_name):
@@ -48,7 +48,7 @@ def get_sample(network_name):
     return sample_file
 
 
-def get_model_readout(test_sample_file):
+def get_model_readout(test_sample_file, normalise_readout=True):
     graph = tf.Graph()
     with graph.as_default():
         model = RouteNetModel()
@@ -56,8 +56,8 @@ def get_model_readout(test_sample_file):
 
         data_set = read_dataset(test_sample_file)
         data_set_itrtr = data_set.make_initializable_iterator()
-        # The `label` here is the delay value associated with the features. The features are selected in
-        # the transformation_func(...) from the train module.
+        # The `label` here is the delay value associated with the features. The features are
+        # selected in the transformation_func(...) from the train module.
         features, label = data_set_itrtr.get_next()
 
         with tf.name_scope('predict'):
@@ -72,18 +72,24 @@ def get_model_readout(test_sample_file):
         # This is the reverse of the normalisation applied in the parse function in
         # omet_tfrecord_utils.
         # TODO the rationale for the normalisation has to be explained.
-        # readout = 0.54 * readout + 0.37
+        if normalise_readout:
+            readout = 0.54 * readout + 0.37
 
         return graph, readout, data_set_itrtr, label
 
 
-def run_predictions(graph, readout, data_itrtr, true_value, checkpoint_id):
+def run_predictions(graph, readout, data_itrtr, true_value, checkpoint_id, normalised_delay=True):
     with tf.compat.v1.Session(graph=graph) as sess:
         sess.run(tf.compat.v1.local_variables_initializer())
         sess.run(tf.compat.v1.global_variables_initializer())
         saver = tf.compat.v1.train.Saver()
         # Load the weights from the checkpoint
-        saver.restore(sess, '../model_checkpoints-no_delay_norm/model.ckpt-' + str(checkpoint_id))
+        if normalised_delay:
+            saver.restore(sess, '../model_checkpoints-with_delay_norm/model.ckpt-' +
+                          str(checkpoint_id))
+        else:
+            saver.restore(sess, '../model_checkpoints-no_delay_norm/model.ckpt-' +
+                          str(checkpoint_id))
 
         # We are going to take a median of a number of predictions
         predictions = []
@@ -105,7 +111,8 @@ def run_predictions(graph, readout, data_itrtr, true_value, checkpoint_id):
 
 
 def get_plot_sample(pred_data, labels, sample_size):
-    # Given the large number of delay predictions in a single sample, randomly sample some of the results
+    # Given the large number of delay predictions in a single sample, randomly sample some of the
+    # results
     ids = random.sample(range(0, len(pred_data)), sample_size)
     ids.sort()
 
@@ -191,10 +198,10 @@ def plot_cdf(labels, median):
 
     plt.ylim((-0.005, 1.005))
     plt.xlim((mre[1], mre[-2]))
-    plt.xlabel("Relative error (true-median predicted)/true", fontsize=25)
+    plt.xlabel('Relative error (true-median predicted)/true', fontsize=25)
     plt.rc('xtick', labelsize=22)
     plt.rc('ytick', labelsize=22)
     plt.grid(color='gray', linestyle='-', linewidth=2, alpha=0.3)
-    plt.title('CDF of the Mean Relative Error',fontsize=25)
+    plt.title('CDF of the Mean Relative Error', fontsize=25)
     fig = plt.gcf()
     fig.set_size_inches(14, 8.5)

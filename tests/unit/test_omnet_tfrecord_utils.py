@@ -10,6 +10,7 @@ import numpy as np
 import tensorflow as tf
 
 import routenet.data_utils.omnet_tfrecord_utils as tfr_utils
+import routenet.train.train as train
 
 TEST_CODE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -113,7 +114,8 @@ class TestTFRecords(unittest.TestCase):
 
     def test_d_extract_links(self):
         self.__class__.links, self.__class__.capacities_links = tfr_utils.extract_links(
-            self.__class__.num_nodes, self.__class__.connections_lists, self.__class__.link_capacity_dict)
+            self.__class__.num_nodes, self.__class__.connections_lists,
+            self.__class__.link_capacity_dict)
 
         links_expected = [(0, 1), (0, 2), (0, 3), (1, 0), (1, 2), (1, 7), (2, 0), (2, 1), (2, 5),
                           (3, 0), (3, 4), (3, 8), (4, 3), (4, 5), (4, 6), (5, 2), (5, 4), (5, 12),
@@ -328,7 +330,7 @@ class TestTFRecords(unittest.TestCase):
 
     def test_i_read_dataset(self):
         with tf.compat.v1.Session() as sess:
-            data_set = tfr_utils.read_dataset(self.tf_rcrds_fl_nm)
+            data_set = train.read_dataset(self.tf_rcrds_fl_nm)
             # TODO https://stackoverflow.com/questions/57725172/iterating-over-a-dataset-tf-2-0-with-for-loop
             itrtr = data_set.make_initializable_iterator()
             sess.run(itrtr.initializer)
