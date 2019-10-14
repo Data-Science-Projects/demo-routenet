@@ -196,9 +196,9 @@ def ned2lists(ned_file_name):
     corresponds to a list of other nodes connected to the node at that position in the
     connections_lists, for example [[1, 3, 2], [0, 2, 7], ...] means that node0 is connected to
     nodes 1, 3 and 2, and that node 1 is connected to nodes 0, 2 and 7. The order of the nodes in
-    the sub-lists is defined by the order in which the `connections_lists:` in the .ned file appears,
-    which is in the order of the port number, so, for example, node0 is connected to node1 via
-    port0, which is shown by `node0.port[0] <--> Channel10kbps <--> node1.port[0];` in the .ned
+    the sub-lists is defined by the order in which the `connections_lists:` in the .ned file
+    appears, which is in the order of the port number, so, for example, node0 is connected to node1
+    via japort0, which is shown by `node0.port[0] <--> Channel10kbps <--> node1.port[0];` in the .ned
     file.
 
     The return value of link_capacity_dict is a dictionary keyed by <noden>:<nodem>, where the

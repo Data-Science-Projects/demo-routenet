@@ -10,7 +10,7 @@ import numpy as np
 import tensorflow as tf
 
 import routenet.data_utils.omnet_tfrecord_utils as tfr_utils
-import routenet.train.train as train
+import routenet.train.train as rn_train
 
 TEST_CODE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -36,8 +36,8 @@ class TestTFRecords(unittest.TestCase):
 
     def test_a_ned2lists(self):
         ned_file_name = TEST_CODE_DIR + '/../unit-resources/nsfnetbw/Network_nsfnetbw.ned'
-        self.__class__.connections_lists, self.__class__.num_nodes, self.__class__.link_capacity_dict = \
-            tfr_utils.ned2lists(ned_file_name)
+        self.__class__.connections_lists, self.__class__.num_nodes, \
+            self.__class__.link_capacity_dict = tfr_utils.ned2lists(ned_file_name)
         assert (self.__class__.num_nodes == 14)
         assert (self.__class__.connections_lists == [[1, 3, 2], [0, 2, 7], [0, 1, 5], [0, 4, 8],
                                                      [3, 5, 6], [2, 4, 12, 13], [4, 7], [1, 6, 10],
@@ -331,7 +331,7 @@ class TestTFRecords(unittest.TestCase):
 
     def test_i_read_dataset(self):
         with tf.compat.v1.Session() as sess:
-            data_set = train.read_dataset(self.tf_rcrds_fl_nm)
+            data_set = rn_train.read_dataset(self.tf_rcrds_fl_nm)
             # TODO https://stackoverflow.com/questions/57725172/iterating-over-a-dataset-tf-2-0-with-for-loop
             itrtr = data_set.make_initializable_iterator()
             sess.run(itrtr.initializer)
@@ -352,8 +352,8 @@ class TestTFRecords(unittest.TestCase):
             assert (set(features_keys) == test_dict_keys)
 
             label_val = label.eval()
-            # label_val = (label_val[0] * 0.54) + 0.37
-            np.testing.assert_allclose(label_val[0], np.array(self.__class__.delays))
+            label_val = (label_val[0] * 0.54) + 0.37
+            np.testing.assert_allclose(label_val, np.array(self.__class__.delays), atol=1e-05)
 
             sess.run(itrtr.initializer)
             links_val = features['links'].eval()
