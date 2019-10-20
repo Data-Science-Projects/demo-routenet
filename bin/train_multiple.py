@@ -34,6 +34,6 @@ rn_train.train_and_evaluate(model_dir=model_chkpnt_dir,
                             train_files=train_files_list,
                             shuffle_buf=30000,
                             target='delay',
-                            train_steps=100000,
+                            train_steps=50000,
                             eval_files=eval_files_list,
                             warm_start_from=None)

@@ -95,11 +95,13 @@ class TestModel(unittest.TestCase):
             return median_prediction, true_val[0]
 
     def do_test_prediction(self, sample_file):
-        graph, readout, data_set_itrtr, label = self.get_model_readout(sample_file)
+        graph, readout, data_set_itrtr, label = self.get_model_readout(sample_file,
+                                                                       normalise_readout=False)
         median_prediction, true_val = \
-            self.run_predictions(graph, readout, data_set_itrtr, label, 54809)
+            self.run_predictions(graph, readout, data_set_itrtr, label, 50000,
+                                 normalised_delay=True)
         mse = mean_squared_error(median_prediction, true_val)
-        assert(mse < 0.00035)
+        assert(mse < 0.0009)
         r2 = r2_score(median_prediction, true_val)
         assert(r2 > 0.98)
 
