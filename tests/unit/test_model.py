@@ -6,8 +6,6 @@ import os
 import random
 import unittest
 
-from sklearn.metrics import mean_squared_error, r2_score
-
 import utils.test_utils as test_utils
 
 # TODO This code should be refactored with the code in the rn_notebook_utils.py
@@ -34,24 +32,14 @@ class TestModel(unittest.TestCase):
         sample_file = train_data_path + train_data_filename
         return sample_file
 
-    def do_test_prediction(self, sample_file):
-        graph, readout, data_set_itrtr, label = test_utils.get_model_readout(sample_file)
-        median_prediction, true_val = \
-            test_utils.run_predictions(graph, readout, data_set_itrtr, label, 50000,
-                                       self.proj_dir_root)
-        mse = mean_squared_error(median_prediction, true_val)
-        r2 = r2_score(median_prediction, true_val)
-        return mse, r2
-
     def test_a_nsfnetbw_predictions(self):
         sample_file = self.get_sample('nsfnetbw')
-        mse, r2 = self.do_test_prediction(sample_file)
+        mse, r2 = test_utils.do_test_prediction(sample_file, self.proj_dir_root)
         assert(mse < 0.0009)
         assert(r2 > 0.98)
 
     def test_b_geant2bw_predictions(self):
         sample_file = self.get_sample('geant2bw')
-        mse, r2 = self.do_test_prediction(sample_file)
+        mse, r2 = test_utils.do_test_prediction(sample_file, self.proj_dir_root)
         assert(mse < 0.0009)
         assert(r2 > 0.98)
-

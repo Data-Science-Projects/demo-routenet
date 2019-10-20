@@ -4,6 +4,7 @@ __author__ = 'nsowatsk@cisco.com'
 
 import numpy as np
 import tensorflow as tf
+from sklearn.metrics import mean_squared_error, r2_score
 
 from routenet.model.routenet_model import RouteNetModel
 from routenet.train.train import read_dataset
@@ -42,30 +43,33 @@ def get_model_readout(test_sample_file, normalise_readout=False):
         return graph, readout, data_set_itrtr, label
 
 
-def run_predictions(graph, readout, data_itrtr, true_value, checkpoint_id, checkpoint_dir):
+def do_test_prediction(sample_file, checkpoint_dir):
+    graph, readout, data_set_itrtr, label = get_model_readout(sample_file)
+
     with tf.compat.v1.Session(graph=graph) as sess:
         sess.run(tf.compat.v1.local_variables_initializer())
         sess.run(tf.compat.v1.global_variables_initializer())
         saver = tf.compat.v1.train.Saver()
         # Load the weights from the checkpoint
         saver.restore(sess, checkpoint_dir +
-                      '/model_checkpoints-with_delay_norm/model.ckpt-' +
-                      str(checkpoint_id))
+                      '/model_checkpoints-with_delay_norm/model.ckpt-' + '50000')
 
         # We are going to take a median of a number of predictions
         predictions = []
         # We run the model 50 times to predict delays based for the network represented by
         # the sample data set.
         for _ in range(50):
-            sess.run(data_itrtr.initializer)
+            sess.run(data_set_itrtr.initializer)
             # The `true_delay` value here is the original delay value from the sample data set,
             # against which we compare the median value of the predicted delay below.
-            # TODO check why true_value has to be passed in
+            # TODO check why label has to be passed in
             # Note that we need to pass back the median of the `pred_delay` and the true_delay
             # just so that we have two tensors of the same shape for graphing purposes.
-            predicted, true_val = sess.run([readout, true_value])
+            predicted, true_val = sess.run([readout, label])
             predictions.append(predicted)
 
         median_prediction = np.median(predictions, axis=0)
 
-    return median_prediction, true_val[0]
+    mse = mean_squared_error(median_prediction, true_val[0])
+    r2 = r2_score(median_prediction, true_val[0])
+    return mse, r2
