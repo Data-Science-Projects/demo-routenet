@@ -32,65 +32,27 @@ import random
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
-
-from routenet.model.routenet_model import RouteNetModel
-from routenet.train.train import read_dataset
+from sklearn.metrics import mean_squared_error, r2_score
 
 
 def get_sample(network_name):
     random.seed(13)
     # Path to data sets
     omnet_data_dir = os.getenv('OMNET_DATA_DIR')
-    train_data_path = omnet_data_dir+'/' + network_name + '/tfrecords/train/'
+    train_data_path = omnet_data_dir + '/' + network_name + '/tfrecords/train/'
     train_data_filename = random.choice(os.listdir(train_data_path))
     sample_file = train_data_path + train_data_filename
     # print(sample_file.split('/')[-1])
     return sample_file
 
 
-def get_model_readout(test_sample_file, normalise_readout=True):
-    graph = tf.Graph()
-    with graph.as_default():
-        model = RouteNetModel()
-        model.build()
-
-        data_set = read_dataset(test_sample_file)
-        data_set_itrtr = data_set.make_initializable_iterator()
-        # The `label` here is the delay value associated with the features. The features are
-        # selected in the transformation_func(...) from the train module.
-        features, label = data_set_itrtr.get_next()
-
-        with tf.name_scope('predict'):
-            # The lamba construct below invokes RouteNetModel.call(features, training=True).
-            # The return value from the call(...) function is the readout Sequential() model, with
-            # training set to `True`.
-            readout = tf.map_fn(lambda x: model(x, training=True), features, dtype=tf.float32)
-
-        # Having called this on one set of features, we have an initialised readout.
-        # We squeeze the tensor to ... TODO
-        readout = tf.squeeze(readout)
-        # This is the reverse of the normalisation applied in the parse function in
-        # omet_tfrecord_utils.
-        # TODO the rationale for the normalisation has to be explained.
-        if normalise_readout:
-            readout = 0.54 * readout + 0.37
-
-        return graph, readout, data_set_itrtr, label
-
-
-def run_predictions(graph, readout, data_itrtr, true_value, checkpoint_id, normalised_delay=True):
+def run_predictions(graph, readout, data_itrtr, true_values, checkpoint_id, normalise_pred=True):
     with tf.compat.v1.Session(graph=graph) as sess:
         sess.run(tf.compat.v1.local_variables_initializer())
         sess.run(tf.compat.v1.global_variables_initializer())
         saver = tf.compat.v1.train.Saver()
         # Load the weights from the checkpoint
-        if normalised_delay:
-            saver.restore(sess, '../model_checkpoints-with_delay_norm/model.ckpt-' +
-                          str(checkpoint_id))
-        else:
-            saver.restore(sess, '../model_checkpoints-no_delay_norm/model.ckpt-' +
-                          str(checkpoint_id))
-
+        saver.restore(sess, '../model_checkpoints-with_delay_norm/model.ckpt-' + str(checkpoint_id))
         # We are going to take a median of a number of predictions
         predictions = []
         # We run the model 50 times to predict delays based for the network represented by
@@ -102,12 +64,20 @@ def run_predictions(graph, readout, data_itrtr, true_value, checkpoint_id, norma
             # TODO check why true_value has to be passed in
             # Note that we need to pass back the median of the `pred_delay` and the true_delay
             # just so that we have two tensors of the same shape for graphing purposes.
-            predicted, true_val = sess.run([readout, true_value])
+            predicted, true_vals = sess.run([readout, true_values])
+            if normalise_pred:
+                predicted = 0.54 * predicted + 0.37
             predictions.append(predicted)
 
         median_prediction = np.median(predictions, axis=0)
 
-        return median_prediction, predictions, true_val
+        if normalise_pred:
+            true_vals = 0.54 * true_vals + 0.37
+
+        mse = mean_squared_error(median_prediction, true_vals[0])
+        r2 = r2_score(median_prediction, true_vals[0])
+
+        return median_prediction, predictions, true_vals, mse, r2
 
 
 def get_plot_sample(pred_data, labels, sample_size):
@@ -133,9 +103,9 @@ def plot_pred_vs_true_bar(preds, labels, sample_size):
     index = np.arange(sample_size)
     bar_width = 0.40
 
-    rects1 = plt.bar(index, preds, bar_width, color='b', label='Predicted Delay')
+    plt.bar(index, preds, bar_width, color='b', label='Predicted Delay')
 
-    rects2 = plt.bar(index + bar_width, labels, bar_width, color='greenyellow', label='True Delay')
+    plt.bar(index + bar_width, labels, bar_width, color='greenyellow', label='True Delay')
 
     for tick in ax.xaxis.get_major_ticks():
         tick.label.set_fontsize(22)

@@ -12,8 +12,7 @@ from routenet.train.train import read_dataset
 
 # TODO This code should be refactored with the code in the rn_notebook_utils.py
 
-
-def get_model_readout(test_sample_file, normalise_readout=False):
+def get_model_readout(test_sample_file):
     graph = tf.Graph()
     with graph.as_default():
         model = RouteNetModel()
@@ -27,8 +26,8 @@ def get_model_readout(test_sample_file, normalise_readout=False):
 
         with tf.name_scope('predict'):
             # The lamba construct below invokes RouteNetModel.call(features, training=True).
-            # The return value from the call(...) function is the readout Sequential() model,
-            # with training set to `True`.
+            # The return value from the call(...) function is the readout Sequential() model, with
+            # training set to `True`.
             readout = tf.map_fn(lambda x: model(x, training=True), features, dtype=tf.float32)
 
         # Having called this on one set of features, we have an initialised readout.
@@ -36,24 +35,23 @@ def get_model_readout(test_sample_file, normalise_readout=False):
         readout = tf.squeeze(readout)
         # This is the reverse of the normalisation applied in the parse function in
         # omet_tfrecord_utils.
-        # TODO the rationale for the normalisation has to be explained.
-        if normalise_readout:
-            readout = 0.54 * readout + 0.37
 
         return graph, readout, data_set_itrtr, label
 
 
-def do_test_prediction(sample_file, checkpoint_dir):
-    graph, readout, data_set_itrtr, label = get_model_readout(sample_file)
+def run_predictions(graph, readout, data_set_itrtr, labels, checkpoint_id, checkpoint_dir,
+                    normalise_pred=True):
 
     with tf.compat.v1.Session(graph=graph) as sess:
         sess.run(tf.compat.v1.local_variables_initializer())
         sess.run(tf.compat.v1.global_variables_initializer())
         saver = tf.compat.v1.train.Saver()
         # Load the weights from the checkpoint
-        saver.restore(sess, checkpoint_dir +
-                      '/model_checkpoints-with_delay_norm/model.ckpt-' + '50000')
-
+        try:
+            saver.restore(sess, checkpoint_dir + '/model.ckpt-' + str(checkpoint_id))
+        except Exception as ex:
+            print(ex)
+            assert False
         # We are going to take a median of a number of predictions
         predictions = []
         # We run the model 50 times to predict delays based for the network represented by
@@ -62,14 +60,29 @@ def do_test_prediction(sample_file, checkpoint_dir):
             sess.run(data_set_itrtr.initializer)
             # The `true_delay` value here is the original delay value from the sample data set,
             # against which we compare the median value of the predicted delay below.
-            # TODO check why label has to be passed in
+            # TODO check why labels has to be passed in
             # Note that we need to pass back the median of the `pred_delay` and the true_delay
             # just so that we have two tensors of the same shape for graphing purposes.
-            predicted, true_val = sess.run([readout, label])
+            predicted, true_vals = sess.run([readout, labels])
+            if normalise_pred:
+                predicted = 0.54 * predicted + 0.37
             predictions.append(predicted)
 
         median_prediction = np.median(predictions, axis=0)
 
-    mse = mean_squared_error(median_prediction, true_val[0])
-    r2 = r2_score(median_prediction, true_val[0])
+        if normalise_pred:
+            true_vals = 0.54 * true_vals + 0.37
+
+    mse = mean_squared_error(median_prediction, true_vals[0])
+    r2 = r2_score(median_prediction, true_vals[0])
+    return median_prediction, predictions, true_vals, mse, r2
+
+
+def do_test_prediction(sample_file, checkpoint_dir, checkpoint_id=50000, normalise_pred=True):
+    graph, readout, data_set_itrtr, labels = get_model_readout(sample_file)
+    _, _, _, mse, r2 = run_predictions(graph, readout, data_set_itrtr, labels, checkpoint_id,
+                                       checkpoint_dir,
+                                       normalise_pred=True)
+
     return mse, r2
+

@@ -27,6 +27,7 @@ class TestModel(unittest.TestCase):
 
     def get_sample(self, network_name):
         # Path to data sets
+        # TODO change to evaluate, rather than train?
         train_data_path = self.data_dir_root + network_name + '/data/tfrecords/train/'
         train_data_filename = random.choice(os.listdir(train_data_path))
         sample_file = train_data_path + train_data_filename
@@ -34,12 +35,17 @@ class TestModel(unittest.TestCase):
 
     def test_a_nsfnetbw_predictions(self):
         sample_file = self.get_sample('nsfnetbw')
-        mse, r2 = test_utils.do_test_prediction(sample_file, self.proj_dir_root)
+        mse, r2 = test_utils.do_test_prediction(sample_file, self.proj_dir_root +
+                                                '/model_checkpoints-with_delay_norm',
+                                                normalise_pred=True)
         assert(mse < 0.0009)
         assert(r2 > 0.98)
 
     def test_b_geant2bw_predictions(self):
         sample_file = self.get_sample('geant2bw')
-        mse, r2 = test_utils.do_test_prediction(sample_file, self.proj_dir_root)
+        mse, r2 = test_utils.do_test_prediction(sample_file,
+                                                self.proj_dir_root +
+                                                '/model_checkpoints-with_delay_norm',
+                                                normalise_pred=True)
         assert(mse < 0.0009)
         assert(r2 > 0.98)
