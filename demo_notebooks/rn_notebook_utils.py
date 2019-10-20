@@ -31,8 +31,6 @@ import random
 
 import matplotlib.pyplot as plt
 import numpy as np
-import tensorflow as tf
-from sklearn.metrics import mean_squared_error, r2_score
 
 
 def get_sample(network_name):
@@ -44,40 +42,6 @@ def get_sample(network_name):
     sample_file = train_data_path + train_data_filename
     # print(sample_file.split('/')[-1])
     return sample_file
-
-
-def run_predictions(graph, readout, data_itrtr, true_values, checkpoint_id, normalise_pred=True):
-    with tf.compat.v1.Session(graph=graph) as sess:
-        sess.run(tf.compat.v1.local_variables_initializer())
-        sess.run(tf.compat.v1.global_variables_initializer())
-        saver = tf.compat.v1.train.Saver()
-        # Load the weights from the checkpoint
-        saver.restore(sess, '../model_checkpoints-with_delay_norm/model.ckpt-' + str(checkpoint_id))
-        # We are going to take a median of a number of predictions
-        predictions = []
-        # We run the model 50 times to predict delays based for the network represented by
-        # the sample data set.
-        for _ in range(50):
-            sess.run(data_itrtr.initializer)
-            # The `true_delay` value here is the original delay value from the sample data set,
-            # against which we compare the median value of the predicted delay below.
-            # TODO check why true_value has to be passed in
-            # Note that we need to pass back the median of the `pred_delay` and the true_delay
-            # just so that we have two tensors of the same shape for graphing purposes.
-            predicted, true_vals = sess.run([readout, true_values])
-            if normalise_pred:
-                predicted = 0.54 * predicted + 0.37
-            predictions.append(predicted)
-
-        median_prediction = np.median(predictions, axis=0)
-
-        if normalise_pred:
-            true_vals = 0.54 * true_vals + 0.37
-
-        mse = mean_squared_error(median_prediction, true_vals[0])
-        r2 = r2_score(median_prediction, true_vals[0])
-
-        return median_prediction, predictions, true_vals, mse, r2
 
 
 def get_plot_sample(pred_data, labels, sample_size):
