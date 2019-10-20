@@ -12,9 +12,9 @@ import numpy as np
 import tensorflow as tf
 
 import routenet.data_utils.omnet_tfrecord_utils
-from routenet.data_utils.omnet_tfrecord_utils import read_dataset
 from routenet.model.routenet_model import RouteNetModel
 from routenet.train import train as rn_train
+from routenet.train.train import read_dataset
 
 TEST_CODE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -28,7 +28,7 @@ class SmokeTest(unittest.TestCase):
 
     def do_test_tfrecords(self, data_set_name):
         routenet.data_utils.omnet_tfrecord_utils.process_data(network_data_dir=self.data_dir_root +
-                                                                               data_set_name)
+                                                              data_set_name)
         test_dirs = glob.glob(self.data_dir_root + data_set_name + '/tfrecords/*')
         assert self.data_dir_root + data_set_name + '/tfrecords/evaluate' in test_dirs
         assert self.data_dir_root + data_set_name + '/tfrecords/train' in test_dirs
