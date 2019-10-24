@@ -6,6 +6,7 @@ import glob
 import os
 import random
 import shutil
+import sys
 import unittest
 
 import tensorflow as tf
@@ -44,7 +45,7 @@ class SmokeTest(unittest.TestCase):
         data_set_name = 'synth50bw'
         self.do_test_tfrecords(data_set_name)
 
-    def do_train(self, data_set_name):
+    def do_train(self, data_set_name, train_steps=100):
         train_files_list = glob.glob(self.data_dir_root + data_set_name +
                                      '/tfrecords/train/*.tfrecords')
         eval_files_list = glob.glob(self.data_dir_root + data_set_name +
@@ -59,7 +60,7 @@ class SmokeTest(unittest.TestCase):
                                     train_files=train_files_list,
                                     shuffle_buf=30000,
                                     target='delay',
-                                    train_steps=100,
+                                    train_steps=train_steps,
                                     eval_files=eval_files_list,
                                     warm_start_from=None,
                                     checkpointing_config=test_checkpointing_config)
@@ -71,7 +72,7 @@ class SmokeTest(unittest.TestCase):
         self.do_train('geant2bw')
 
     def test_2_synth50bw_train(self):
-        self.do_train('synth50bw')
+        self.do_train('synth50bw', train_steps=500)
 
     def get_sample(self, network_name):
         # Path to data sets
@@ -80,32 +81,24 @@ class SmokeTest(unittest.TestCase):
         sample_file = train_data_path + train_data_filename
         return sample_file
 
-    def test_3_nsfnetbw_predictions(self):
-        ds_name = 'nsfnetbw'
+    def do_pred_test(self, ds_name, checkpoint_id=100):
         sample_file = self.get_sample(ds_name)
         mse, r2 = test_utils.do_test_prediction(sample_file,
                                                 checkpoint_dir=self.checkpoint_dir + ds_name,
-                                                checkpoint_id=100)
+                                                checkpoint_id=checkpoint_id)
+
+        print('For {0}, we have mse {1} and r2 {2}'.format(ds_name, mse, r2), file=sys.stderr)
         assert(mse < 0.05)
         assert(r2 > 0.5)
+
+    def test_3_nsfnetbw_predictions(self):
+        self.do_pred_test('nsfnetbw')
 
     def test_3_geant2bw_predictions(self):
-        ds_name = 'geant2bw'
-        sample_file = self.get_sample(ds_name)
-        mse, r2 = test_utils.do_test_prediction(sample_file,
-                                                checkpoint_dir=self.checkpoint_dir + ds_name,
-                                                checkpoint_id=100)
-        assert(mse < 0.05)
-        assert(r2 > 0.5)
+        self.do_pred_test('geant2bw')
 
     def test_3_synth50bw_predictions(self):
-        ds_name = 'synth50bw'
-        sample_file = self.get_sample(ds_name)
-        mse, r2 = test_utils.do_test_prediction(sample_file,
-                                                checkpoint_dir=self.checkpoint_dir + ds_name,
-                                                checkpoint_id=100)
-        assert(mse < 0.05)
-        assert(r2 > 0.5)
+        self.do_pred_test('synth50bw', checkpoint_id=500)
 
     @classmethod
     def do_teardown(cls, data_set_name):
