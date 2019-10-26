@@ -332,6 +332,8 @@ class TestTFRecords(unittest.TestCase):
     """
     This code is left here for pedagogical purposes. See:
     https://stackoverflow.com/questions/57725172/iterating-over-a-dataset-tf-2-0-with-for-loop
+    TODO revisit after upgrading code for TF 2.0 eager execution idioms.
+    """
     def test_i_read_dataset(self):
         with tf.compat.v1.Session() as sess:
             data_set = rn_train.read_dataset(self.tf_rcrds_fl_nm)
@@ -393,8 +395,8 @@ class TestTFRecords(unittest.TestCase):
             np.testing.assert_array_equal(link_capacity_val,
                                           np.array(self.__class__.link_capacities))
         os.remove(self.tf_rcrds_fl_nm)
-    """
 
+    """
     def test_ia_read_dataset(self):
         tf.compat.v1.enable_eager_execution()
         data_set = rn_train.read_dataset(self.tf_rcrds_fl_nm)
@@ -446,6 +448,7 @@ class TestTFRecords(unittest.TestCase):
             np.testing.assert_array_equal(link_capacity_val,
                                           np.array(self.__class__.link_capacities))
         os.remove(self.tf_rcrds_fl_nm)
+    """
 
     def test_j_process_data(self):
         tfr_utils.process_data(self.network_data_dir, te_split=0.5)
