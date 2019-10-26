@@ -329,13 +329,13 @@ class TestTFRecords(unittest.TestCase):
 
         assert(os.path.exists(self.tf_rcrds_fl_nm))
 
+    """
     def test_i_read_dataset(self):
         with tf.compat.v1.Session() as sess:
             data_set = rn_train.read_dataset(self.tf_rcrds_fl_nm)
-            # TODO https://stackoverflow.com/questions/57725172/iterating-over-a-dataset-tf-2-0-with-for-loop
             itrtr = data_set.make_initializable_iterator()
             sess.run(itrtr.initializer)
-            features, label = itrtr.get_next()
+            features, labels = itrtr.get_next()
             features_keys = features.keys()
 
             assert(len(features_keys) == 8)
@@ -351,9 +351,9 @@ class TestTFRecords(unittest.TestCase):
 
             assert (set(features_keys) == test_dict_keys)
 
-            label_val = label.eval()
-            label_val = (label_val[0] * 0.54) + 0.37
-            np.testing.assert_allclose(label_val, np.array(self.__class__.delays), atol=1e-05)
+            labels_val = labels.eval()
+            labels_val = (labels_val[0] * 0.54) + 0.37
+            np.testing.assert_allclose(labels_val, np.array(self.__class__.delays), atol=1e-05)
 
             sess.run(itrtr.initializer)
             links_val = features['links'].eval()
@@ -387,6 +387,59 @@ class TestTFRecords(unittest.TestCase):
 
             sess.run(itrtr.initializer)
             link_capacity_val = features['link_capacity'].eval()
+            link_capacity_val = (link_capacity_val[0] * 40.0) + 25.0
+            np.testing.assert_array_equal(link_capacity_val,
+                                          np.array(self.__class__.link_capacities))
+        os.remove(self.tf_rcrds_fl_nm)
+    """
+
+    def test_ia_read_dataset(self):
+        tf.compat.v1.enable_eager_execution()
+        data_set = rn_train.read_dataset(self.tf_rcrds_fl_nm)
+        for features, labels in data_set:
+            features_keys = features.keys()
+            labels_array = np.array(labels)
+
+            assert(len(features_keys) == 8)
+
+            test_dict_keys = {'traffic',
+                              'sequences',
+                              'link_capacity',
+                              'links',
+                              'paths',
+                              'n_links',
+                              'n_paths',
+                              'n_total'}
+
+            assert (set(features_keys) == test_dict_keys)
+
+            labels_array = (labels_array[0] * 0.54) + 0.37
+            np.testing.assert_allclose(labels_array, np.array(self.__class__.delays), atol=1e-05)
+
+            links_val = np.array(features['links'])
+            assert(links_val.tolist()[0] == self.__class__.link_indices)
+
+            paths_val = np.array(features['paths'])
+            assert(paths_val.tolist()[0] == self.__class__.path_indices)
+
+            sequences_val = np.array(features['sequences'])
+            assert(sequences_val.tolist()[0] == self.__class__.sequ_indices)
+
+            n_links_val = np.array(features['n_links'])
+            assert(n_links_val.tolist()[0] == max(max(self.__class__.paths)) + 1)
+
+            n_paths_val = np.array(features['n_paths'])
+            assert(n_paths_val.tolist()[0] == len(self.__class__.paths))
+
+            n_total_val = np.array(features['n_total'])
+            assert (n_total_val.tolist()[0] == len(self.__class__.path_indices))
+
+            traffic_val = np.array(features['traffic'])
+            traffic_val = (traffic_val[0] * 0.13) + 0.17
+            np.testing.assert_allclose(traffic_val, np.array(self.__class__.traffic_bw_txs),
+                                       atol=1e-05)
+
+            link_capacity_val = np.array(features['link_capacity'])
             link_capacity_val = (link_capacity_val[0] * 40.0) + 25.0
             np.testing.assert_array_equal(link_capacity_val,
                                           np.array(self.__class__.link_capacities))
