@@ -27,6 +27,7 @@ pytest==4.4.1
 matplotlib==3.0.2
 jupyter==1.0.0
 pytest==4.4.1
+pytest-cov==2.8.1
 # TODO not available on macOS, so using 'darwin' to exclude macOS
 tensorflow-gpu==1.14.0; sys_platform != 'darwin'
 
