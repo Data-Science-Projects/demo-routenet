@@ -330,6 +330,8 @@ class TestTFRecords(unittest.TestCase):
         assert(os.path.exists(self.tf_rcrds_fl_nm))
 
     """
+    This code is left here for pedagogical purposes. See:
+    https://stackoverflow.com/questions/57725172/iterating-over-a-dataset-tf-2-0-with-for-loop
     def test_i_read_dataset(self):
         with tf.compat.v1.Session() as sess:
             data_set = rn_train.read_dataset(self.tf_rcrds_fl_nm)
@@ -417,22 +419,22 @@ class TestTFRecords(unittest.TestCase):
             np.testing.assert_allclose(labels_array, np.array(self.__class__.delays), atol=1e-05)
 
             links_val = np.array(features['links'])
-            assert(links_val.tolist()[0] == self.__class__.link_indices)
+            np.testing.assert_array_equal(links_val[0], self.__class__.link_indices)
 
             paths_val = np.array(features['paths'])
-            assert(paths_val.tolist()[0] == self.__class__.path_indices)
+            np.testing.assert_array_equal(paths_val[0], self.__class__.path_indices)
 
             sequences_val = np.array(features['sequences'])
-            assert(sequences_val.tolist()[0] == self.__class__.sequ_indices)
+            np.testing.assert_array_equal(sequences_val[0], self.__class__.sequ_indices)
 
             n_links_val = np.array(features['n_links'])
-            assert(n_links_val.tolist()[0] == max(max(self.__class__.paths)) + 1)
+            np.testing.assert_array_equal(n_links_val[0], max(max(self.__class__.paths)) + 1)
 
             n_paths_val = np.array(features['n_paths'])
-            assert(n_paths_val.tolist()[0] == len(self.__class__.paths))
+            np.testing.assert_array_equal(n_paths_val[0], len(self.__class__.paths))
 
             n_total_val = np.array(features['n_total'])
-            assert (n_total_val.tolist()[0] == len(self.__class__.path_indices))
+            np.testing.assert_array_equal(n_total_val[0], len(self.__class__.path_indices))
 
             traffic_val = np.array(features['traffic'])
             traffic_val = (traffic_val[0] * 0.13) + 0.17
