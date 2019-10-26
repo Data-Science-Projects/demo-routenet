@@ -71,7 +71,7 @@ def process_data(network_data_dir, te_split=0.8):
         routing_file = tar_file.extractfile(tar_info.name + '/Routing.txt')
         routing_mtrx = get_routing_matrix(routing_file)
 
-        tf.logging.info('Starting ', results_file)
+        tf.compat.v1.logging.info('Starting ', results_file)
         make_tfrecord(network_data_dir,
                       tf_file_name,
                       connections_lists,
@@ -138,7 +138,7 @@ def make_tfrecord(network_data_dir,
     if not os.path.exists(tfrecords_dir):
         os.makedirs(tfrecords_dir)
 
-    tf_rcrd_wrtr = tf.python_io.TFRecordWriter(tfrecords_dir + tf_file_name)
+    tf_rcrd_wrtr = tf.io.TFRecordWriter(tfrecords_dir + tf_file_name)
     rslt_pos_gnrtr = ResultsPositionGenerator(num_nodes)
 
     for result_data in results_file:

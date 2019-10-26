@@ -337,7 +337,7 @@ class TestTFRecords(unittest.TestCase):
     def test_i_read_dataset(self):
         with tf.compat.v1.Session() as sess:
             data_set = rn_train.read_dataset(self.tf_rcrds_fl_nm)
-            itrtr = data_set.make_initializable_iterator()
+            itrtr = tf.compat.v1.data.make_initializable_iterator(data_set)
             sess.run(itrtr.initializer)
             features, labels = itrtr.get_next()
             features_keys = features.keys()
