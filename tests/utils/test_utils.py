@@ -18,8 +18,9 @@ def get_model_readout(test_sample_file):
         model = RouteNetModel()
         model.build()
 
-        data_set = read_dataset(test_sample_file)
-        data_set_itrtr = data_set.make_initializable_iterator()
+        dataset = read_dataset(test_sample_file)
+        # TODO Change to use dataset iteration with eager execution
+        data_set_itrtr = tf.compat.v1.data.make_initializable_iterator(dataset)
         # The `label` here is the delay value associated with the features. The features are
         # selected in the transformation_func(...) from the train module.
         features, label = data_set_itrtr.get_next()

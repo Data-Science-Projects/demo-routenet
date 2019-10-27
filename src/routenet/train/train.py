@@ -98,18 +98,22 @@ def tfrecord_input_fn(filenames, hparams, shuffle_buf=1000, target='delay'):
     files = tf.data.Dataset.from_tensor_slices(filenames)
     files = files.shuffle(len(filenames))
 
-    # TODO constant 4 should be externalised
-    dataset = files.apply(tf.contrib.data.parallel_interleave(
-        tf.data.TFRecordDataset, cycle_length=4))
+    # TODO cycle_length=4 should be left to default AUTOTUNE
+    dataset = files.interleave(map_func=tf.data.TFRecordDataset,
+                               cycle_length=4,
+                               num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
     if shuffle_buf:
-        dataset = dataset.apply(tf.contrib.data.shuffle_and_repeat(shuffle_buf))
+        # dataset = dataset.apply(tf.contrib.data.shuffle_and_repeat(shuffle_buf))
+        # TODO fixing deprecation
+        dataset = dataset.shuffle(shuffle_buf, reshuffle_each_iteration=True).repeat()
 
     # TODO constants 2 and 10 should be externalised
     dataset = dataset.map(lambda buf: parse(buf, target), num_parallel_calls=2)
     dataset = dataset.prefetch(10)
 
-    itrtr = dataset.make_one_shot_iterator()
+    # TODO, remove iterator and pass data set directly
+    itrtr = tf.compat.v1.data.make_one_shot_iterator(dataset)
     sample = transformation_func(itrtr, hparams.batch_size)
 
     return sample
@@ -141,26 +145,26 @@ def model_fn(features, labels, mode, params):
     if mode == tf.estimator.ModeKeys.PREDICT:
         return tf.estimator.EstimatorSpec(mode, predictions={'predictions': predictions})
 
-    loss = tf.losses.mean_squared_error(labels=labels,
-                                        predictions=predictions,
-                                        reduction=tf.losses.Reduction.MEAN)
+    loss = tf.compat.v1.losses.mean_squared_error(labels=labels,
+                                                  predictions=predictions,
+                                                  reduction=tf.compat.v1.losses.Reduction.MEAN)
 
     regularization_loss = sum(model.losses)
     total_loss = loss + regularization_loss
 
-    tf.summary.scalar('loss', loss)
-    tf.summary.scalar('regularization_loss', regularization_loss)
+    tf.compat.v1.summary.scalar('loss', loss)
+    tf.compat.v1.summary.scalar('regularization_loss', regularization_loss)
 
     if mode == tf.estimator.ModeKeys.EVAL:
         return tf.estimator.EstimatorSpec(
             mode, loss=loss,
             eval_metric_ops={
-                'label/mean': tf.metrics.mean(labels),
-                'prediction/mean': tf.metrics.mean(predictions),
-                'mae': tf.metrics.mean_absolute_error(labels, predictions),
+                'label/mean': tf.compat.v1.metrics.mean(labels),
+                'prediction/mean': tf.compat.v1.metrics.mean(predictions),
+                'mae': tf.compat.v1.metrics.mean_absolute_error(labels, predictions),
                 'rho': tf.contrib.metrics.streaming_pearson_correlation(labels=labels,
                                                                         predictions=predictions),
-                'mre': tf.metrics.mean_relative_error(labels, predictions, labels)
+                'mre': tf.compat.v1.metrics.mean_relative_error(labels, predictions, labels)
             }
         )
 
@@ -170,23 +174,24 @@ def model_fn(features, labels, mode, params):
     grads = tf.gradients(total_loss, trainables)
     grad_var_pairs = zip(grads, trainables)
 
-    summaries = [tf.summary.histogram(var.op.name, var) for var in trainables]
-    summaries += [tf.summary.histogram(g.op.name, g) for g in grads if g is not None]
+    summaries = [tf.compat.v1.summary.histogram(var.op.name, var) for var in trainables]
+    summaries += [tf.compat.v1.summary.histogram(g.op.name, g) for g in grads if g is not None]
 
     # TODO constants 82000 and 0.8 should be externalised.
-    decayed_lr = tf.train.exponential_decay(params.learning_rate,
-                                            tf.train.get_global_step(),
-                                            82000,
-                                            0.8,
-                                            staircase=True)
+    decayed_lr = tf.compat.v1.train.exponential_decay(params.learning_rate,
+                                                      tf.compat.v1.train.get_global_step(),
+                                                      82000,
+                                                      0.8,
+                                                      staircase=True)
 
-    optimizer = tf.train.AdamOptimizer(decayed_lr)
-    update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+    optimizer = tf.compat.v1.train.AdamOptimizer(decayed_lr)
+    update_ops = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.UPDATE_OPS)
 
     with tf.control_dependencies(update_ops):
-        train_op = optimizer.apply_gradients(grad_var_pairs, global_step=tf.train.get_global_step())
+        train_op = optimizer.apply_gradients(grad_var_pairs,
+                                             global_step=tf.compat.v1.train.get_global_step())
 
-    logging_hook = tf.train.LoggingTensorHook(
+    logging_hook = tf.estimator.LoggingTensorHook(
         {"Training loss": loss}, every_n_iter=10)
 
     return tf.estimator.EstimatorSpec(mode,

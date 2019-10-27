@@ -19,8 +19,6 @@ TEST_CODE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class SmokeTest(unittest.TestCase):
-    # TODO use environment variable for data dir
-
     data_dir_root = TEST_CODE_DIR + '/../smoke-resources/data/'
     checkpoint_dir = TEST_CODE_DIR + '/../smoke-resources/CheckPoints/'
 
@@ -66,10 +64,10 @@ class SmokeTest(unittest.TestCase):
                                     checkpointing_config=test_checkpointing_config)
 
     def test_2_nsfnetbw_train(self):
-        self.do_train('nsfnetbw')
+        self.do_train('nsfnetbw', train_steps=200)
 
     def test_2_geant2bw_train(self):
-        self.do_train('geant2bw')
+        self.do_train('geant2bw', train_steps=200)
 
     def test_2_synth50bw_train(self):
         self.do_train('synth50bw', train_steps=500)
@@ -92,10 +90,10 @@ class SmokeTest(unittest.TestCase):
         assert(r2 > 0.5)
 
     def test_3_nsfnetbw_predictions(self):
-        self.do_pred_test('nsfnetbw')
+        self.do_pred_test('nsfnetbw', checkpoint_id=200)
 
     def test_3_geant2bw_predictions(self):
-        self.do_pred_test('geant2bw')
+        self.do_pred_test('geant2bw', checkpoint_id=200)
 
     def test_3_synth50bw_predictions(self):
         self.do_pred_test('synth50bw', checkpoint_id=500)
