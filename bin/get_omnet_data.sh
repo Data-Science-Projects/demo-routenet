@@ -3,7 +3,7 @@
 # These data sets are from:
 # https://github.com/knowledgedefinednetworking/NetworkModelingDatasets/tree/master/datasets_v0
 rm -rf $OMNET_DATA_DIR
-mkdir -p $OMNET_DATA_DIR/datasets_v0
+mkdir -p $OMNET_DATA_DIR/datasets_v0_ACM_SIGCOMM
 cd $OMNET_DATA_DIR/datasets_v0
 wget "http://knowledgedefinednetworking.org/data/datasets_v0/nsfnet.tar.gz"
 wget "http://knowledgedefinednetworking.org/data/datasets_v0/geant2.tar.gz"
@@ -14,7 +14,7 @@ tar -xvzf synth50.tar.gz
 
 # These data sets are from:
 # https://github.com/knowledgedefinednetworking/Unveiling-the-potential-of-GNN-for-network-modeling-and-optimization-in-SDN/tree/master/datasets
-mkdir -p $OMNET_DATA_DIR/datasets
+mkdir -p $OMNET_DATA_DIR/datasets_ACM_SOSR
 cd $OMNET_DATA_DIR/datasets
 wget "http://knowledgedefinednetworking.org/data/nsfnet.zip"
 wget "http://knowledgedefinednetworking.org/data/geant2.zip"
