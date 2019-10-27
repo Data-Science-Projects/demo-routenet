@@ -1,9 +1,25 @@
-# OMNet++ Datasets
+# OMNeT++ Datasets
 
-The code in this package processes network data into formats suitable for modelling and predictions
-using TensorFlow. The source files and formats of the data are described below. These files are
-typically bundled into a single tar.gz file for ease of distribution, which is expanded into a
-directory with the name of the network topology.
+The code in the `routenet.data_utils` package processes network data into formats suitable for 
+modelling and predictions using TensorFlow. The source files and formats of the data are described 
+below. This explanation is based on the 
+[KDN datasets_v0 format](https://github.com/knowledgedefinednetworking/NetworkModelingDatasets/tree/master/datasets_v0).
+
+The v0 and [v1 format](https://github.com/knowledgedefinednetworking/NetworkModelingDatasets/tree/master/datasets_v1) 
+differ in that the fifth field is: 
+
+```
+5.- Average per-packet neperian logarithm of the delay over the packets transmitted in each source-destination pair.
+
+   avg_ln_delay[src_node][dst_node] = n*n*3 + (src_node∗n+dst_node)*8 + 1
+```
+
+There are 
+[v0](https://github.com/knowledgedefinednetworking/NetworkModelingDatasets/tree/master/datasets_v0) 
+and
+[v1](https://github.com/knowledgedefinednetworking/NetworkModelingDatasets/tree/master/datasets_v1) 
+datasets. The data sets are bundled into a single tar.gz file for ease of distribution, which 
+is expanded into a directory with the name of the network topology.
 
 ## OMNeT++ NED File
 

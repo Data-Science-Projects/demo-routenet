@@ -3,7 +3,7 @@
 # These data sets are from:
 # https://github.com/knowledgedefinednetworking/NetworkModelingDatasets/tree/master/datasets_v0
 rm -rf $OMNET_DATA_DIR
-mkdir -p $OMNET_DATA_DIR/datasets_v0_ACM_SIGCOMM
+mkdir -p $OMNET_DATA_DIR/datasets_v0
 cd $OMNET_DATA_DIR/datasets_v0
 wget "http://knowledgedefinednetworking.org/data/datasets_v0/nsfnet.tar.gz"
 wget "http://knowledgedefinednetworking.org/data/datasets_v0/geant2.tar.gz"
@@ -11,17 +11,6 @@ wget "http://knowledgedefinednetworking.org/data/datasets_v0/synth50.tar.gz"
 tar -xvzf nsfnet.tar.gz
 tar -xvzf geant2.tar.gz
 tar -xvzf synth50.tar.gz
-
-# These data sets are from:
-# https://github.com/knowledgedefinednetworking/Unveiling-the-potential-of-GNN-for-network-modeling-and-optimization-in-SDN/tree/master/datasets
-mkdir -p $OMNET_DATA_DIR/datasets_ACM_SOSR
-cd $OMNET_DATA_DIR/datasets
-wget "http://knowledgedefinednetworking.org/data/nsfnet.zip"
-wget "http://knowledgedefinednetworking.org/data/geant2.zip"
-wget "http://knowledgedefinednetworking.org/data/GBN.zip"
-unzip nsfnet.zip
-unzip geant2.zip
-unzip GBN.zip
 
 # Populate the smoke-resources data sets for smoke-testing
 rm -rf $RN_PROJ_HOME/tests/smoke-resources/data
