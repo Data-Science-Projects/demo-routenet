@@ -13,8 +13,7 @@ import tensorflow as tf
 from routenet.train.train import NormVals
 
 
-def get_norm_vals(dataset_names):
-    limit = 20  # Number of files to sample
+def get_norm_vals(dataset_names, sample_size=20):
     delays = []
     traffic = []
     link_capacity = []
@@ -25,7 +24,7 @@ def get_norm_vals(dataset_names):
         for tfrecords in ['train', 'evaluate']:
             tfrecords_dir = omnet_data_dir + '/datasets_v0/' + dataset + '/tfrecords/' + tfrecords
             files = os.listdir(tfrecords_dir)
-            sample = random.sample(files, limit)
+            sample = random.sample(files, sample_size)
             for file in sample:
                 record_iterator = tf.python_io.tf_record_iterator(path=tfrecords_dir + '/' + file)
                 for string_record in record_iterator:

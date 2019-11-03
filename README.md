@@ -82,7 +82,7 @@ states, while the link capacity is added as an input feature in the initial link
 
 ![Internal architecture of RouteNet](demo_notebooks/assets/routenet_architecture.png)
 
-This model is implemented in [routnet_model.py](src/routenet/model/routenet_model.py).
+This model is implemented in [routnet_model.py](src/routenet/model/routenet_model_v0.py).
 
 # OMnet++ Data Pipeline
 

@@ -9,7 +9,7 @@ import unittest
 
 import tensorflow as tf
 
-from routenet.model.routenet_model import RouteNetModel
+from routenet.model.routenet_model_v0 import RouteNetModelV0
 from routenet.train import train as rn_train
 
 TEST_CODE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -23,7 +23,7 @@ class TestTrain(unittest.TestCase):
         train_files_list = glob.glob(self.data_dir_root + '/train/*.tfrecords')
 
         sample = rn_train.tfrecord_input_fn(filenames=train_files_list,
-                                            hparams=RouteNetModel.default_hparams,
+                                            hparams=RouteNetModelV0.default_hparams,
                                             shuffle_buf=30,
                                             target='delay')
 

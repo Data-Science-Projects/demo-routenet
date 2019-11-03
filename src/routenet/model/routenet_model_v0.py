@@ -14,7 +14,7 @@ import tensorflow as tf
 from tensorflow import keras
 
 
-class RouteNetModel(tf.keras.Model):
+class RouteNetModelV0(tf.keras.Model):
     # TODO These parameters are NOT the same as the original code, but are the same as those
     # used in the demo notebook. It is not clear which parameters were used elsewhere in the
     # original data pipeline.
@@ -32,7 +32,7 @@ class RouteNetModel(tf.keras.Model):
     # If false, only the readout is trained
 
     def __init__(self, hparams=default_hparams, output_units=1, final_activation=None):
-        super(RouteNetModel, self).__init__()
+        super(RouteNetModelV0, self).__init__()
         self.hparams = hparams
 
         self.edge_update = tf.keras.layers.GRUCell(self.hparams.link_state_dim)

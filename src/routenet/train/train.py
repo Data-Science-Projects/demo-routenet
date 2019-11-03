@@ -18,7 +18,7 @@ import sys
 
 import tensorflow as tf
 
-from routenet.model.routenet_model import RouteNetModel
+from routenet.model.routenet_model_v0 import RouteNetModelV0
 
 rn_default_checkpointing_config = tf.estimator.RunConfig(
     save_checkpoints_secs=10 * 60,  # Save checkpoints every 10 minutes
@@ -45,7 +45,7 @@ def train_and_evaluate(model_dir,
                        train_steps,
                        eval_files,
                        warm_start_from,
-                       model_hparams=RouteNetModel.default_hparams,
+                       model_hparams=RouteNetModelV0.default_hparams,
                        checkpointing_config=rn_default_checkpointing_config,
                        norm_vals=default_normvals):
 
@@ -147,7 +147,7 @@ def model_fn(features, labels, mode, params):
     """
     print('******** in model_fn ******************', file=sys.stderr)
 
-    model = RouteNetModel(params)
+    model = RouteNetModelV0(params)
     model.build()
 
     # TODO why this function at all?

@@ -6,7 +6,7 @@ import numpy as np
 import tensorflow as tf
 from sklearn.metrics import mean_squared_error, r2_score
 
-from routenet.model.routenet_model import RouteNetModel
+from routenet.model.routenet_model_v0 import RouteNetModelV0
 from routenet.train.train import read_dataset
 
 
@@ -15,7 +15,7 @@ from routenet.train.train import read_dataset
 def get_model_readout(test_sample_file):
     graph = tf.Graph()
     with graph.as_default():
-        model = RouteNetModel()
+        model = RouteNetModelV0()
         model.build()
 
         dataset = read_dataset(test_sample_file)

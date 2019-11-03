@@ -11,7 +11,7 @@ import unittest
 
 import tensorflow as tf
 
-import routenet.data_utils.omnet_tfrecord_utils
+import routenet.data_utils.omnet_tfrecord_utils_v0
 import utils.test_utils as test_utils
 from routenet.train import train as rn_train
 
@@ -25,8 +25,8 @@ class SmokeTest(unittest.TestCase):
     random.seed(13)
 
     def do_test_tfrecords(self, data_set_name):
-        routenet.data_utils.omnet_tfrecord_utils.process_data(network_data_dir=self.data_dir_root +
-                                                              data_set_name)
+        routenet.data_utils.omnet_tfrecord_utils_v0.process_data(network_data_dir=self.data_dir_root +
+                                                                                  data_set_name)
         test_dirs = glob.glob(self.data_dir_root + data_set_name + '/tfrecords/*')
         assert self.data_dir_root + data_set_name + '/tfrecords/evaluate' in test_dirs
         assert self.data_dir_root + data_set_name + '/tfrecords/train' in test_dirs
