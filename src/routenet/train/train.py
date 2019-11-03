@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2019, Krzysztof Rusek [^1], Paul Almasan [^2]
+# Copyright (c) 2019, Krzysztof Rusek [^1], Paul Almasan [^2], Nathan Sowatskey, Ana Matute.
 #
 # [^1]: AGH University of Science and Technology, Department of
 #     communications, Krakow, Poland. Email: krusek\@agh.edu.pl
@@ -9,6 +9,7 @@
 
 """
 The functions here execute the training steps for the RouteNetModel.
+TODO refactor as a class to imprice handling of global normvals
 """
 
 from __future__ import print_function
@@ -25,6 +26,18 @@ rn_default_checkpointing_config = tf.estimator.RunConfig(
 )
 
 
+class NormVals:
+    mean_delay = 0
+    std_delay = 1
+    mean_traffic = 0
+    std_traffic = 1
+    mean_link_capacity = 0
+    std_link_capacity = 1
+
+
+default_normvals = NormVals()
+
+
 def train_and_evaluate(model_dir,
                        train_files,
                        shuffle_buf,
@@ -33,7 +46,8 @@ def train_and_evaluate(model_dir,
                        eval_files,
                        warm_start_from,
                        model_hparams=RouteNetModel.default_hparams,
-                       checkpointing_config=rn_default_checkpointing_config):
+                       checkpointing_config=rn_default_checkpointing_config,
+                       norm_vals=default_normvals):
 
     estimator = tf.estimator.Estimator(model_fn=model_fn,
                                        model_dir=model_dir,
@@ -45,14 +59,16 @@ def train_and_evaluate(model_dir,
                                         lambda: tfrecord_input_fn(filenames=train_files,
                                                                   hparams=model_hparams,
                                                                   shuffle_buf=shuffle_buf,
-                                                                  target=target),
+                                                                  target=target,
+                                                                  norm_vals=norm_vals),
                                         max_steps=train_steps)
 
     eval_spec = tf.estimator.EvalSpec(input_fn=
                                       lambda: tfrecord_input_fn(filenames=eval_files,
                                                                 hparams=model_hparams,
-                                                                shuffle_buf=None,
-                                                                target=target),
+                                                                shuffle_buf=None,  # TODO None?
+                                                                target=target,
+                                                                norm_vals=norm_vals),
                                       throttle_secs=10 * 60)
 
     tf.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
@@ -93,7 +109,8 @@ def transformation_func(itrtr, batch_size=32):
     return tensors
 
 
-def tfrecord_input_fn(filenames, hparams, shuffle_buf=1000, target='delay'):
+def tfrecord_input_fn(filenames, hparams, shuffle_buf=1000, target='delay',
+                      norm_vals=default_normvals):
 
     files = tf.data.Dataset.from_tensor_slices(filenames)
     files = files.shuffle(len(filenames))
@@ -109,7 +126,7 @@ def tfrecord_input_fn(filenames, hparams, shuffle_buf=1000, target='delay'):
         dataset = dataset.shuffle(shuffle_buf, reshuffle_each_iteration=True).repeat()
 
     # TODO constants 2 and 10 should be externalised
-    dataset = dataset.map(lambda buf: parse(buf, target), num_parallel_calls=2)
+    dataset = dataset.map(lambda buf: parse(buf, target, norm_vals), num_parallel_calls=2)
     dataset = dataset.prefetch(10)
 
     # TODO, remove iterator and pass data set directly
@@ -200,7 +217,7 @@ def model_fn(features, labels, mode, params):
                                       training_hooks=[logging_hook])
 
 
-def parse(serialized, target='delay'):
+def parse(serialized, target='delay', norm_vals=default_normvals):
     # Target is the name of predicted variable
     # TODO 'traffic' below is bandwidth of traffic transmitted
     with tf.device('/cpu:0'):
@@ -226,11 +243,14 @@ def parse(serialized, target='delay'):
                 features[feature] = tf.sparse.to_dense(features[feature])
                 # TODO create switch for delay normalisation
                 if feature == 'delay':
-                    features[feature] = (features[feature] - 0.37) / 0.54
+                    features[feature] = ((features[feature] - norm_vals.mean_delay) /
+                                         norm_vals.std_delay)
                 if feature == 'traffic':
-                    features[feature] = (features[feature] - 0.17) / 0.13
+                    features[feature] = ((features[feature] - norm_vals.mean_traffic) /
+                                         norm_vals.std_traffic)
                 if feature == 'link_capacity':
-                    features[feature] = (features[feature] - 25.0) / 40.0
+                    features[feature] = ((features[feature] - norm_vals.mean_link_capacity) /
+                                         norm_vals.std_link_capacity)
 
     return {k: v for k, v in features.items() if k is not target}, features[target]
 

@@ -12,6 +12,7 @@ import os
 import shutil
 
 from routenet.train import train as rn_train
+from routenet.train.normalise import get_norm_vals
 
 NORM_DELAY = True
 
@@ -41,10 +42,13 @@ model_chkpnt_dir = model_chkpnt_dir + '_v0/'
 
 shutil.rmtree(model_chkpnt_dir, ignore_errors=True)
 
+norm_vals = get_norm_vals(train_sets)
+
 rn_train.train_and_evaluate(model_dir=model_chkpnt_dir,
                             train_files=train_files_list,
                             shuffle_buf=30000,
                             target='delay',
                             train_steps=train_steps,
                             eval_files=eval_files_list,
-                            warm_start_from=None)
+                            warm_start_from=None,
+                            norm_vals=norm_vals)
