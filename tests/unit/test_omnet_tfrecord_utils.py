@@ -335,7 +335,6 @@ class TestTFRecords(unittest.TestCase):
     TODO revisit after upgrading code for TF 2.0 eager execution idioms.
     """
     def test_i_read_dataset(self):
-        # TODO include normalisation code
         with tf.compat.v1.Session() as sess:
             data_set = rn_train.read_dataset(self.tf_rcrds_fl_nm)
             itrtr = tf.compat.v1.data.make_initializable_iterator(data_set)
