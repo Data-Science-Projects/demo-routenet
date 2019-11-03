@@ -335,6 +335,7 @@ class TestTFRecords(unittest.TestCase):
     TODO revisit after upgrading code for TF 2.0 eager execution idioms.
     """
     def test_i_read_dataset(self):
+        # TODO include normalisation code
         with tf.compat.v1.Session() as sess:
             data_set = rn_train.read_dataset(self.tf_rcrds_fl_nm)
             itrtr = tf.compat.v1.data.make_initializable_iterator(data_set)
@@ -356,7 +357,7 @@ class TestTFRecords(unittest.TestCase):
             assert (set(features_keys) == test_dict_keys)
 
             labels_val = labels.eval()
-            labels_val = (labels_val[0] * 0.54) + 0.37
+            labels_val = labels_val[0]
             np.testing.assert_allclose(labels_val, np.array(self.__class__.delays), atol=1e-05)
 
             sess.run(itrtr.initializer)
@@ -385,13 +386,12 @@ class TestTFRecords(unittest.TestCase):
 
             sess.run(itrtr.initializer)
             traffic_val = features['traffic'].eval()
-            traffic_val = (traffic_val[0] * 0.13) + 0.17
-            np.testing.assert_allclose(traffic_val, np.array(self.__class__.traffic_bw_txs),
-                                       atol=1e-05)
+            traffic_val = traffic_val[0]
+            np.testing.assert_allclose(traffic_val, np.array(self.__class__.traffic_bw_txs))
 
             sess.run(itrtr.initializer)
             link_capacity_val = features['link_capacity'].eval()
-            link_capacity_val = (link_capacity_val[0] * 40.0) + 25.0
+            link_capacity_val = link_capacity_val[0]
             np.testing.assert_array_equal(link_capacity_val,
                                           np.array(self.__class__.link_capacities))
         os.remove(self.tf_rcrds_fl_nm)
