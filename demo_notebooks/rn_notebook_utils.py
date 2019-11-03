@@ -37,7 +37,7 @@ def get_sample(network_name):
     random.seed(13)
     # Path to data sets
     omnet_data_dir = os.getenv('OMNET_DATA_DIR')
-    train_data_path = omnet_data_dir + '/' + network_name + '/tfrecords/train/'
+    train_data_path = omnet_data_dir + '/datasets_v0/' + network_name + '/tfrecords/train/'
     train_data_filename = random.choice(os.listdir(train_data_path))
     sample_file = train_data_path + train_data_filename
     # print(sample_file.split('/')[-1])

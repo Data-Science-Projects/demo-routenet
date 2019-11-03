@@ -12,7 +12,7 @@ tar -xvzf nsfnet.tar.gz
 tar -xvzf geant2.tar.gz
 tar -xvzf synth50.tar.gz
 
-# Populate the smoke-resources data sets for smoke-testing
+# Populate the smoke-resources data sets for smoke testing
 rm -rf $RN_PROJ_HOME/tests/smoke-resources/data
 
 mkdir -p $RN_PROJ_HOME/tests/smoke-resources/data/nsfnetbw

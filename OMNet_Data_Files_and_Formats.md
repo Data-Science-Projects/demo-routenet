@@ -14,12 +14,18 @@ differ in that the fifth field is:
    avg_ln_delay[src_node][dst_node] = n*n*3 + (src_node∗n+dst_node)*8 + 1
 ```
 
+TODO fill in more details for V1.
+
 There are 
 [v0](https://github.com/knowledgedefinednetworking/NetworkModelingDatasets/tree/master/datasets_v0) 
 and
 [v1](https://github.com/knowledgedefinednetworking/NetworkModelingDatasets/tree/master/datasets_v1) 
 datasets. The data sets are bundled into a single tar.gz file for ease of distribution, which 
 is expanded into a directory with the name of the network topology.
+
+## graph_attr.txt
+
+This file is part of the data sets, but is not actually used for any purpose. 
 
 ## OMNeT++ NED File
 
