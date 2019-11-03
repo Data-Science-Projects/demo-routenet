@@ -1,6 +1,8 @@
 #@title Licensed under the MIT License (the "License"); { display-mode:"form" }
 # MIT License
 
+__copyright__ = 'Copyright 2019 Nathan Sowatskey, Ana Matute. All rights reserved.'
+__author__ = 'nsowatsk@cisco.com'
 # Copyright (c) 2019 Paul Almasan, José Suárez-Varela, Krzysztzof Rusek
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy

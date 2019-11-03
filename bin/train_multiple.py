@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+__copyright__ = 'Copyright 2019 Nathan Sowatskey, Ana Matute. All rights reserved.'
+__author__ = 'nsowatsk@cisco.com'
 
 """
 This script will train, and create checkpoints for, the RouteNetModel with the nsfnetbw and
