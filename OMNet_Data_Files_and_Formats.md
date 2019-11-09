@@ -31,9 +31,9 @@ This file is part of the data sets, but is not actually used for any purpose.
 
 Within a give network directory, there is a *.ned file, which describes the network topology, 
 including the link capacities. This file is used with [OMNeT++](https://omnetpp.org) to import the 
-topology and simulate the network as described in [TODO](TODO).
+topology and simulate the network. How this works is not in the public domain.
 
-The exanmple contents below are from the 
+The example contents below are from the 
 [Network_nsfnetbw.ned](tests/unit-resources/nsfnetbw/Network_nsfnetbw.ned) file:
 
 ```
@@ -122,7 +122,7 @@ Routing_matrix(src node, dst node) = output port to reach the dst node from the 
 
 Note that the diagonal of the matrix is -1. 
 
-The exanmple contents below are from the 
+The example contents below are from the 
 [Routing.txt](tests/unit-resources/nsfnetbw/Routing.txt) file corresponding to the
 [Network_nsfnetbw.ned](tests/unit-resources/nsfnetbw/Network_nsfnetbw.ned) file:
 ```
@@ -160,9 +160,9 @@ node0.port[1] <--> Channel10kbps <--> node3.port[0];
 node0.port[2] <--> Channel10kbps <--> node2.port[0];
 ```
 
-Where we can see that the connection from `node0.port[0]` goes into `node1.port[0]`, so, in the
-[Routing.txt](tests/unit-resources/nsfnetbw/Routing.txt), we also see that, in the second row, for 
-`node1`, the connection to `node0` is vi` `port0`.
+Where we can see that the connection from `node0.port[0]` goes into `node1.port[0]`. In the
+[Routing.txt](tests/unit-resources/nsfnetbw/Routing.txt) we also see that in the second row, for 
+`node1`, the connection to `node0` is via `port0`.
 
 ### simulationResults.txt 
 
@@ -261,7 +261,7 @@ repeat = 500
 Contains some input parameters used in our simulator. The most relevant ones at the user-level are 
 'simulationDuration' and 'repeat'. 'simulationDuration' is the total duration of the simulation 
 (in relative time units). For instance, this value is used to tune the simulation time in order to 
-ensure that the behavior of performance metrics such as delay reachs a stationary state. Note that 
+ensure that the behavior of performance metrics such as delay reaches a stationary state. Note that 
 some simulation results like the total number of packets transmitted or dropped depend also on this 
 parameter. Likewise, the 'repeat' parameter defines the number of simulation samples included in the 
 current 'tar.gz' file.

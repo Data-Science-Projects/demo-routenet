@@ -3,8 +3,7 @@ __copyright__ = 'Copyright 2019 Nathan Sowatskey, Ana Matute. All rights reserve
 __author__ = 'nsowatsk@cisco.com'
 
 """
-This script will train, and create checkpoints for, the RouteNetModel with the nsfnetbw and
-synth50bw data sets from datasets_v0.
+This script trains, and creates checkpoints for, the RouteNetModel with the datasets from datasets_v0.
 """
 
 import glob
@@ -12,7 +11,6 @@ import os
 import shutil
 
 from routenet.train import train_v0 as rn_train
-from routenet.train.normvals_v0 import NormVals
 
 NORM_DELAY = True
 
@@ -42,14 +40,10 @@ model_chkpnt_dir = model_chkpnt_dir + '_v0/'
 
 shutil.rmtree(model_chkpnt_dir, ignore_errors=True)
 
-norm_vals = NormVals()
-norm_vals.calculate_norm_vals(train_sets)
-
 rn_train.train_and_evaluate(model_dir=model_chkpnt_dir,
                             train_files=train_files_list,
                             shuffle_buf=30000,
                             target='delay',
                             train_steps=train_steps,
                             eval_files=eval_files_list,
-                            warm_start_from=None,
-                            norm_vals=norm_vals)
+                            warm_start_from=None)

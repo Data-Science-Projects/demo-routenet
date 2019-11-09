@@ -35,6 +35,7 @@ class RouteNetModelV0(tf.keras.Model):
         super(RouteNetModelV0, self).__init__()
         self.hparams = hparams
 
+        # TODO rename edge_update to link_update
         self.edge_update = tf.keras.layers.GRUCell(self.hparams.link_state_dim)
         self.path_update = tf.keras.layers.GRUCell(self.hparams.path_state_dim)
 

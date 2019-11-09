@@ -10,7 +10,7 @@
 """
 Utilities to transform the data produced by the OMNeT++ network simulator into TF Records.
 TODO These functions should be refactored in to a class so as to use member variables instead
-of passing around data from one funtion to another.
+of passing around data from one function to another.
 """
 
 import glob

@@ -7,9 +7,10 @@ import tensorflow as tf
 from sklearn.metrics import mean_squared_error, r2_score
 
 from routenet.model.routenet_model_v0 import RouteNetModelV0
-from routenet.train.normvals_v0 import NormVals
 from routenet.train.train_v0 import read_dataset
 
+
+# TODO This code should be refactored with the code in the rn_notebook_utils.py
 
 def get_model_readout(test_sample_file):
     graph = tf.Graph()
@@ -40,7 +41,7 @@ def get_model_readout(test_sample_file):
 
 
 def run_predictions(graph, readout, data_set_itrtr, labels, checkpoint_id, checkpoint_dir,
-                    norm_vals=NormVals()):
+                    normalise_pred=True):
 
     with tf.compat.v1.Session(graph=graph) as sess:
         sess.run(tf.compat.v1.local_variables_initializer())
@@ -64,27 +65,25 @@ def run_predictions(graph, readout, data_set_itrtr, labels, checkpoint_id, check
             # Note that we need to pass back the median of the `pred_delay` and the true_delay
             # just so that we have two tensors of the same shape for graphing purposes.
             predicted, true_vals = sess.run([readout, labels])
-            predicted = norm_vals.std_delay * predicted + norm_vals.mean_delay
+            if normalise_pred:
+                predicted = 0.54 * predicted + 0.37
             predictions.append(predicted)
 
         median_prediction = np.median(predictions, axis=0)
 
-        true_vals = norm_vals.std_delay * true_vals + norm_vals.mean_delay
+        if normalise_pred:
+            true_vals = 0.54 * true_vals + 0.37
 
     mse = mean_squared_error(median_prediction, true_vals[0])
     r2 = r2_score(median_prediction, true_vals[0])
     return median_prediction, predictions, true_vals, mse, r2
 
 
-def do_test_prediction(sample_file, checkpoint_dir, checkpoint_id=50000, norm_vals=NormVals()):
+def do_test_prediction(sample_file, checkpoint_dir, checkpoint_id=50000, normalise_pred=True):
     graph, readout, data_set_itrtr, labels = get_model_readout(sample_file)
-    _, _, _, mse, r2 = run_predictions(graph,
-                                       readout,
-                                       data_set_itrtr,
-                                       labels,
-                                       checkpoint_id,
+    _, _, _, mse, r2 = run_predictions(graph, readout, data_set_itrtr, labels, checkpoint_id,
                                        checkpoint_dir,
-                                       norm_vals=norm_vals)
+                                       normalise_pred=True)
 
     return mse, r2
 

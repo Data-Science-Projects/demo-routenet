@@ -16,16 +16,13 @@ tar -xvzf synth50.tar.gz
 rm -rf $RN_PROJ_HOME/tests/smoke-resources/data
 
 mkdir -p $RN_PROJ_HOME/tests/smoke-resources/data/nsfnetbw
-cp $OMNET_DATA_DIR/datasets_v0/nsfnetbw/graph_attr.txt $RN_PROJ_HOME/tests/smoke-resources/data/nsfnetbw
 cp $OMNET_DATA_DIR/datasets_v0/nsfnetbw/Network_nsfnetbw.ned $RN_PROJ_HOME/tests/smoke-resources/data/nsfnetbw
 cp $OMNET_DATA_DIR/datasets_v0/nsfnetbw/results_nsfnetbw_9_Routing_SP* $RN_PROJ_HOME/tests/smoke-resources/data/nsfnetbw
 
 mkdir -p $RN_PROJ_HOME/tests/smoke-resources/data/geant2bw
-cp $OMNET_DATA_DIR/datasets_v0/geant2bw/graph_attr.txt $RN_PROJ_HOME/tests/smoke-resources/data/geant2bw
 cp $OMNET_DATA_DIR/datasets_v0/geant2bw/Network_geant2bw.ned $RN_PROJ_HOME/tests/smoke-resources/data/geant2bw
 cp $OMNET_DATA_DIR/datasets_v0/geant2bw/results_geant2bw_9_Routing_SP* $RN_PROJ_HOME/tests/smoke-resources/data/geant2bw
 
 mkdir -p $RN_PROJ_HOME/tests/smoke-resources/data/synth50bw
-cp $OMNET_DATA_DIR/datasets_v0/synth50bw/graph_attr.txt $RN_PROJ_HOME/tests/smoke-resources/data/synth50bw
 cp $OMNET_DATA_DIR/datasets_v0/synth50bw/Network_synth50bw.ned $RN_PROJ_HOME/tests/smoke-resources/data/synth50bw
 cp $OMNET_DATA_DIR/datasets_v0/synth50bw/results_synth50bw_9_Routing_SP* $RN_PROJ_HOME/tests/smoke-resources/data/synth50bw
