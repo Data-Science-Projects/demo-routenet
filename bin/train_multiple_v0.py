@@ -12,8 +12,6 @@ import shutil
 
 from routenet.train import train_v0 as rn_train
 
-NORM_DELAY = True
-
 omnet_data_dir = os.getenv('OMNET_DATA_DIR')
 
 train_sets = ['nsfnetbw', 'geant2bw']

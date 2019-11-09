@@ -131,7 +131,7 @@ def make_tfrecord(network_data_dir,
     num_links = max(max(paths)) + 1
 
     link_indices, path_indices, sequ_indices = make_indices(paths)
-    n_total = len(path_indices)  # TODO what is n_total of?
+    n_total = len(path_indices)
 
     tfrecords_dir = network_data_dir + '/tfrecords/'
 
@@ -374,30 +374,6 @@ def extract_links(num_nodes, connections, link_capacity_dict):
     return links, link_capacities
 
 
-def get_corresponding_values(rslt_pos_gnrtr, result_data, num_paths):
-    traffic_bw_txs = np.zeros(num_paths)
-    delays = np.zeros(num_paths)
-    jitters = np.zeros(num_paths)
-    itrtr = 0
-    for i in range(rslt_pos_gnrtr.num_nodes):
-        for j in range(rslt_pos_gnrtr.num_nodes):
-            if i != j:
-                delay_pos = rslt_pos_gnrtr.get_delay_pos(i, j)
-                jitter_pos = rslt_pos_gnrtr.get_jitter_pos(i, j)
-                traffic_bw_tx_pos = rslt_pos_gnrtr.get_bw_pos(i, j)
-                traffic_bw_txs[itrtr] = float(result_data[traffic_bw_tx_pos])
-                delays[itrtr] = float(result_data[delay_pos])
-                jitters[itrtr] = float(result_data[jitter_pos])
-                itrtr = itrtr + 1
-
-    return traffic_bw_txs, delays, jitters
-
-
-def data(parsed_args):
-    directory = parsed_args.d[0]
-    process_data(directory)
-
-
 def make_indices(paths):
     link_indices = []
     path_indices = []
@@ -446,3 +422,22 @@ class ResultsPositionGenerator:
 
     def get_jitter_pos(self, src, dst):
         return self._offset_delay + (src * self.num_nodes + dst) * 7 + 6
+
+
+def get_corresponding_values(rslt_pos_gnrtr, result_data, num_paths):
+    traffic_bw_txs = np.zeros(num_paths)
+    delays = np.zeros(num_paths)
+    jitters = np.zeros(num_paths)
+    itrtr = 0
+    for i in range(rslt_pos_gnrtr.num_nodes):
+        for j in range(rslt_pos_gnrtr.num_nodes):
+            if i != j:
+                delay_pos = rslt_pos_gnrtr.get_delay_pos(i, j)
+                jitter_pos = rslt_pos_gnrtr.get_jitter_pos(i, j)
+                traffic_bw_tx_pos = rslt_pos_gnrtr.get_bw_pos(i, j)
+                traffic_bw_txs[itrtr] = float(result_data[traffic_bw_tx_pos])
+                delays[itrtr] = float(result_data[delay_pos])
+                jitters[itrtr] = float(result_data[jitter_pos])
+                itrtr = itrtr + 1
+
+    return traffic_bw_txs, delays, jitters
