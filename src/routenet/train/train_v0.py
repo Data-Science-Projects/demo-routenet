@@ -19,21 +19,12 @@ import sys
 import tensorflow as tf
 
 from routenet.model.routenet_model_v0 import RouteNetModelV0
+from routenet.train.normvals_v0 import NormVals
 
 rn_default_checkpointing_config = tf.estimator.RunConfig(
     save_checkpoints_secs=10 * 60,  # Save checkpoints every 10 minutes
     keep_checkpoint_max=20  # Retain the 20 most recent checkpoints.
 )
-
-
-class NormVals:
-    mean_delay = 0
-    std_delay = 1
-    mean_traffic = 0
-    std_traffic = 1
-    mean_link_capacity = 0
-    std_link_capacity = 1
-
 
 default_normvals = NormVals()
 
@@ -238,10 +229,7 @@ def parse(serialized, target='delay', norm_vals=default_normvals):
                                                                                              tf.int64)})
 
             for feature in ['traffic', target, 'link_capacity', 'links', 'paths', 'sequences']:
-                # TODO This is a form of normalisation, but why these values? Factor into
-                # discrete functions.
                 features[feature] = tf.sparse.to_dense(features[feature])
-                # TODO create switch for delay normalisation
                 if feature == 'delay':
                     features[feature] = ((features[feature] - norm_vals.mean_delay) /
                                          norm_vals.std_delay)

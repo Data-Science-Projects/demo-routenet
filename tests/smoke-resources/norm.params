@@ -1,0 +1,6 @@
+mean_delay=0.37
+std_delay=0.54
+mean_traffic=0.17
+std_traffic=0.13
+mean_link_capacity=25
+std_link_capacity=40

@@ -10,7 +10,7 @@ import unittest
 import tensorflow as tf
 
 from routenet.model.routenet_model_v0 import RouteNetModelV0
-from routenet.train import train as rn_train
+from routenet.train import train_v0 as rn_train
 
 TEST_CODE_DIR = os.path.dirname(os.path.abspath(__file__))
 
