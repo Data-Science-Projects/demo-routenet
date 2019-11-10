@@ -35,10 +35,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def get_sample(network_name):
+def get_sample(network_name, omnet_data_dir=None):
     random.seed(13)
-    # Path to data sets
-    omnet_data_dir = os.getenv('OMNET_DATA_DIR')
+    if not omnet_data_dir:
+        omnet_data_dir = os.getenv('OMNET_DATA_DIR')
     train_data_path = omnet_data_dir + '/datasets_v0/' + network_name + '/tfrecords/evaluate/'
     train_data_filename = random.choice(os.listdir(train_data_path))
     sample_file = train_data_path + train_data_filename
