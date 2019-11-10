@@ -2,16 +2,8 @@
 
 ## Abstract
 
-This project is a tutorial intended to aid understanding of 
-[RouteNet](https://arxiv.org/abs/1901.08113)). This project has the following aims:
-
- - Repackage the original 
- [RouteNet demo code](https://github.com/knowledgedefinednetworking/demo-routenet/tree/master/code) 
- as a Python package, suitable for use in production environments, with documented code, unit tests, 
- smoke tests, automated builds and other features expected of production ready code.
- - Implement, and seek to replicate, the original findings for delay and jitter in section 
- 4 "EVALUATION OF THE ACCURACY OF THE GNN MODEL" from the 
- [RouteNet paper](https://arxiv.org/abs/1901.08113)
+This project is a tutorial for [RouteNet](https://arxiv.org/abs/1901.08113). 
+This project has the following aims:
 
 ## What is RouteNet?
 
@@ -152,29 +144,29 @@ code is broken somehow, then the running the tests will quickly reveal that.
 ### Training
 
 The [train_multiple_v0.py](bin/train_multiple_v0.py) script runs the training. The script can be 
-adjusted to train with different data sets, and for different numbers of iterations. The checkpoints
-for any given combination of datasets and training iterations will be saved in a directory named with
-that combination. For example, the directory 
-[model_checkpoints_nsfnetbw_synth50bw_50000](model_checkpoints_nsfnetbw_synth50bw_50000_v0) contains 
-checkpoints, and evaluation logs, for a training run of 50,000 iterations with the `nsfnetbw` and
-`synth50bw` data sets.
+adjusted to train and evaluate with different data sets, and for different numbers of iterations. 
+The checkpoints for any given combination of datasets and training iterations will be saved in a 
+directory named with that combination. For example, the directory 
+[model_checkpoints-train_nsfnetbw_geant2bw-eval_synth50bw-50000_v0](model_checkpoints-train_nsfnetbw_geant2bw-eval_synth50bw-50000_v0) contains 
+checkpoints, and evaluation logs, for a training run of 50,000 iterations with the `train` subset of the
+`nsfnetbw` and `geant2bw` data sets, evaluated against the `evaluation` subset of the `synth50bw` 
+dataset.
 
-Aa a matter of good practice, you should train with at most two of the available datasets, so that you
-can use the other dataset for test purposes.
-
-### Using Tensorboard
+### Using TensorBoard
 
 [TensorBoard](https://www.tensorflow.org/tensorboard) is TensorFlow's visualization toolkit. You can
 use TensorBoard during training, and after, to view the evaluation data for the model over training
 iterations. 
 
 The evaluation log data is in the `eval` sub-directory of the checkpoints directory. For example, 
-if you are training, using 50,000 iterations, with the `nsfnetbw` and `geant2bw` datasets, then the 
-evaluation logs will be in the `model_checkpoints_nsfnetbw_geant2bw_50000_v0/eval` directory. To use
-TensorBoard, then, you can use these commands:
+if you are training, using 50,000 iterations, with the `nsfnetbw` and `geant2bw` datasets, and 
+evaluating with the `synth50bw` data set, then the evaluation logs will be in the 
+`model_checkpoints-train_nsfnetbw_geant2bw-eval_synth50bw-50000_v0` directory. To use TensorBoard, 
+then, you can use the commands below. Note that the `eval` directory will only exist ten minutes after 
+the training has started, as a consequence of the setting `throttle_secs=10 * 60` in the training code.
 
 ```
-cd $RN_PROJ_HOME/model_checkpoints_nsfnetbw_geant2bw_50000_v0/eval
+cd $RN_PROJ_HOME/model_checkpoints-train_nsfnetbw_geant2bw-eval_synth50bw-50000_v0/eval
 tensorboard --logdir .
 ```
 
@@ -191,10 +183,7 @@ that is provided in the ['trained_models' directory](trained_models).
 This model was trained with samples of the 14-node NSFNET and the 50-node topologies, 
 and was evaluated over samples of the Geant2 topology.
 
-## Demo notebook
+## Predictions
 
-In order to continue playing with RouteNet, you can follow an interactive Jupyter notebook 
-that we provide in the [demo_notebooks directory](demo_notebooks). Here, we load the 
-RouteNet model in the [trained_models directory](trained_models) to make per-source/destination 
-delay predictions and show some plots that illustrate how we can leverage the delay predictions 
-of RouteNet for network visibility.
+The [prediction demo notebook](demo_notebooks/prediction_demo.ipynb) uses different checkpoints
+to illustrate the prediction capabilities.
