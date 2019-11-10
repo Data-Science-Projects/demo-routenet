@@ -1,21 +1,17 @@
-# Understanding RouteNet - Review and Implementation of RouteNet Evaluation and Use Cases
+# Understanding RouteNet - A Tutorial
 
 ## Abstract
 
-This project is an implementation centric approach to understanding and illustrating 
+This project is a tutorial intended to aid understanding of 
 [RouteNet](https://arxiv.org/abs/1901.08113)). This project has the following aims:
 
  - Repackage the original 
  [RouteNet demo code](https://github.com/knowledgedefinednetworking/demo-routenet/tree/master/code) 
- as a Python pckage, suitable for use in production environments, with documented code, unit tests, 
+ as a Python package, suitable for use in production environments, with documented code, unit tests, 
  smoke tests, automated builds and other features expected of production ready code.
  - Implement, and seek to replicate, the original findings for delay and jitter in section 
  4 "EVALUATION OF THE ACCURACY OF THE GNN MODEL" from the 
  [RouteNet paper](https://arxiv.org/abs/1901.08113)
- - Implement the use cases discussed in section 5 of the paper. 
- [RouteNet paper](https://arxiv.org/abs/1901.08113)  
- - Given the above as a baseline against which to test and compare, implement a data pipeline 
- suitable for ingesting data from sources other than the original OMNet++ network simulator. 
 
 ## What is RouteNet?
 
@@ -46,7 +42,7 @@ A. Cabellos-Aparicio.
 The original authors of the 
 [demo paper](https://github.com/knowledgedefinednetworking/demo-routenet) provide a trained 
 RouteNet model, in the form of Tensor Flow (TF) checkpoints, which may be found in the 
-['trained_models' directory](trained_models)).
+[trained_models](trained_models) directory.
 
 The pre-trained model is based on 480K training samples, including 240K samples from the 
 [14-node NSF network topology](http://knowledgedefinednetworking.org/data/datasets_v0/nsfnet.tar.gz) 
@@ -60,7 +56,7 @@ and 240K samples from the
 
 The pre-trained model can be loaded to make per-source/destination delay predictions on any sample 
 from the datasets, as demonstrated in the 
-[prediction demo Jupyter notebook](./demo_notebooks/prediction_demo.ipynb).
+[demo Jupyter notebook](./demo_notebooks/prediction_demo.ipynb).
 
 # Project Structure and Admin
 
@@ -84,111 +80,108 @@ states, while the link capacity is added as an input feature in the initial link
 
 This model is implemented in [routnet_model.py](src/routenet/model/routenet_model_v0.py).
 
-# OMnet++ Data Pipeline
+# OMneT++ Data Pipeline
 
-The original sample data sets produced by the [OMNet++](https://omnetpp.org) are described in 
-detail in [OMNet++ data files and formats]. How OMNet++ was used to produce these data sets is 
-outlined in section 4.1, "Simulation setup", of the [paper](https://arxiv.org/abs/1901.08113), but
-there is no public means to replicate that part of the experiment.
+The original sample data sets were produced by a network simulator based on [OMNet++](https://omnetpp.org) 
+and are described in detail in [OMNeT++ Data Files and Formats](OMNet_Data_Files_and_Formats.md). 
+How OMNeT++ was used to produce these data sets is outlined in section 4.1, "Simulation setup", of 
+[Unveiling the potential of Graph Neural Networks for network modeling and optimization in SDN](https://arxiv.org/abs/1901.08113), 
+but there is no public means to replicate that part of the experiment.
 
+## How to Use This Tutorial
 
+To use this tutorial, you are strongly encouraged to set a Python virtual environment as explained below. 
 
-All the datasets used in the demo are available in the following 
-[repository](https://github.com/knowledgedefinednetworking/NetworkModelingDatasets/tree/master/datasets_v0). This repository includes a detailed description on how to process the datasets.
+You can then obtain the original data sets, run the tests, then the training, and use the demo Python 
+notebook to explore the prediction capabilities.
 
-## Running RouteNet
+### Environment Variables
 
-In order to facilitate the execution of RouteNet, we provide some example functions in the 
-script **[run_routenet.sh](./bin/run_routenet.sh)**. This script contains different calls to the 
-RouteNet code (**[routenet_with_link_cap.py](src/routenet/train/train_v0.py)**). Also, they 
-provide some predefined hyperparameters that can be easily modified in the script.
+The scripts used in this tutorial rely on these two environment variables:
 
-## 'How to' guide
-First of all, you can prepare the Python environment for the demo executing the following command:
+ - `OMNET_DATA_DIR`, which is the location of the network datasets data, within which the different 
+ dataset versions will be populated and obtained from.
+ - `RN_PROJ_HOME`, which is the full path name of the `demo-routenet` directory cloned from GitHub,
+ within which this file resides.
+
+### Set up the Python Virtual Environment
+
+The virtual environment is created by the [create_routenet_venv.sh](bin/create_routenet_venv.sh) and 
+the [set_routenet_venv.sh](bin/set_routenet_venv.sh) scripts. The create script will remove any 
+existing virtual environment and create a new one, whilst the set script sets the environment thus 
+created as the current environment. If the environment already exists, and does not need to be created 
+afresh, then just the set script is required.
+
+The Python packages required by the tutorial are defined in the [requirements.txt](requirements.txt) 
+file, which is passed to the Python pip tool as the environment is created. 
+
+The script uses the environment variable `RN_PROJ_HOME`, so ensure that is set before using these 
+scripts.
+
+### Get the Network Datasets
+
+The [get_omnet_data.sh](bin/get_omnet_data.sh) script will retrieve and unpack the network datasets 
+and update the test data for the smoke tests (see below). 
+
+The script uses two environment variables, `OMNET_DATA_DIR` and `RN_PROJ_HOME`, so ensure that they
+are set before using this script.
+
+### Convert to TFRecords
+
+The datasets obtained in the previous step already have the TFRecords version of the data, so you 
+don't need to do this. If you want to see how that conversion works, for the sake of curiosity say, 
+then the [process_omnet_data_v0.py](bin/process_omnet_data_v0.py) script will do that.
+
+### Tests
+
+There are two kinds of tests provided:
+
+ - Unit tests, in the [tests/unit](tests/unit), which individually test the TFRecord conversion,
+ training and model prediction, and which execute in he order of a couple of minutes or less.
+ - Smoke tests, which run through the lifecycle of TFRecord conversion, train and predict, for some
+ hundreds of iterations, and which can take several hours to to execute. 
+ 
+To get quicker results from the smoke tests, you can comment out the tests for the `geant2bw` and
+`synth50bw` datasets, so that the tests just run with the `nsfnetbw` dataset. This will execute in the 
+order of tens of minutes, but is obviously slightly less thorough.  
+
+It is highly recommended to run the tests, which use subsets of the datasets, before you start to 
+use the model for training with the full datasets. If your environment is not set up properly, or the
+code is broken somehow, then the running the tests will quickly reveal that.
+
+### Training
+
+The [train_multiple_v0.py](bin/train_multiple_v0.py) script runs the training. The script can be 
+adjusted to train with different data sets, and for different numbers of iterations. The checkpoints
+for any given combination of datasets and training iterations will be saved in a directory named with
+that combination. For example, the directory 
+[model_checkpoints_nsfnetbw_synth50bw_50000](model_checkpoints_nsfnetbw_synth50bw_50000_v0) contains 
+checkpoints, and evaluation logs, for a training run of 50,000 iterations with the `nsfnetbw` and
+`synth50bw` data sets.
+
+Aa a matter of good practice, you should train with at most two of the available datasets, so that you
+can use the other dataset for test purposes.
+
+### Using Tensorboard
+
+[TensorBoard](https://www.tensorflow.org/tensorboard) is TensorFlow's visualization toolkit. You can
+use TensorBoard during training, and after, to view the evaluation data for the model over training
+iterations. 
+
+The evaluation log data is in the `eval` sub-directory of the checkpoints directory. For example, 
+if you are training, using 50,000 iterations, with the `nsfnetbw` and `geant2bw` datasets, then the 
+evaluation logs will be in the `model_checkpoints_nsfnetbw_geant2bw_50000_v0/eval` directory. To use
+TensorBoard, then, you can use these commands:
 
 ```
-pip install -r requirements.txt
+cd $RN_PROJ_HOME/model_checkpoints_nsfnetbw_geant2bw_50000_v0/eval
+tensorboard --logdir .
 ```
 
-This command installs all the dependencies needed to execute RouteNet.
+Then you can open the TensorBoard web application in a browser at 'http://localhost:6006/' 
+and see the logs via a web application.
 
-To train and evaluate RouteNet it is necessary to download some datasets from the 
-[dataset repository](https://github.com/knowledgedefinednetworking/NetworkModelingDatasets/tree/master/datasets_v0). In this repository you can find three datasets with samples simulated with a custom packet-level simulator in three different topologies: NSFNET (2GB), GEANT2 (6GB)
-and synthetic 50 nodes (28.7GB) topologies. To download and decompress the three datasets you 
-can use the following commands:
-
-```
-wget "http://knowledgedefinednetworking.org/data/datasets_v0/nsfnet.tar.gz"
-wget "http://knowledgedefinednetworking.org/data/datasets_v0/geant2.tar.gz"
-wget "http://knowledgedefinednetworking.org/data/datasets_v0/synth50.tar.gz"
-tar -xvzf nsfnet.tar.gz 
-tar -xvzf geant2.tar.gz 
-tar -xvzf synth50.tar.gz
-```
-
-Note that it is not necessary to download the three datasets to start to play with RouteNet. 
-For instance, you can start using only the NSFNET dataset. 
-
-Then, you may use the script [routenet_with_link_cap.py](src/routenet/train/train_v0.py) 
-to train a RouteNet model that predicts the per-source/destination delay. First of all, it is 
-necessary to modify the variable 'path_to_datasets' to point to the path where the datasets were 
-stored. This script assumes that all the datasets are stored in a same directory.
-
-In order to train RouteNet it is necessary to convert the datasets to the 'TFRecords' format of 
-TensorFlow. Our datasets provide directly the TFRecords files that we used to train and evaluate 
-RouteNet (in the subdirectories 'tfrecords/train' and 'tfrecords/evaluate').
-However, you can also run the following commands to generate the TFRecords files correspondingly 
-for the three different datasets:
-
-```
-./run_routenet.sh tfrecords nsfnetbw
-./run_routenet.sh tfrecords geant2bw
-./run_routenet.sh tfrecords synth50bw
-```
-
-Now, everything is ready to train a RouteNet model. For instance, you can use the following command 
-to train a model using samples just from one topology:
-
-```
-./run_routenet.sh train nsfnetbw 50000
-```
-
-In this case, RouteNet is trained over the training datasets of NSFNET and evaluated over the 
-evaluation samples of the same topology. Note that 'nsfnetbw' can be replaced in this command by 
-'geant2bw' or 'synth50bw' to train the model with the training and evaluation samples of the two 
-other topologies.
-
-This implementation of RouteNet has support to be trained with samples from topologies of variable 
-size. For instance, you can execute the command below to train a model with samples from the NSFNET 
-and the 50-node topology:
-
-```
-./run_routenet.sh train_multiple nsfnetbw synth50bw output_logdir 100000
-```
-
-By default, the evaluation is done on the entire GEANT2 dataset (train and evaluation TFRecords). 
-However, it can be easily modified by setting the paths provided in the '--eval_' flag of the 
-'train_multiple' function in the script [run_routenet.sh](./bin/run_routenet.sh).
-
-
-Once the training is executed, one may use TensorBoard to observe the evolution of some relevant 
-statistics such as the loss, the evaluation accuracy or the values of the weights and gradients 
-along the training. This may be very helpful to identify some possible issues during the training. 
-To execute Tensorboard you can use the following command:
-
-```
-tensorboard --logdir <path_to_logs>
-```
-
-Assuming that you used the training functions provided above, the 
-[run_routenet.sh](./bin/run_routenet.sh) script stores the output logs in subdirectories within 
-the './CheckPoints/' directory.
-
-Then, you can connect in a web browser to 'http://localhost:6006/' and see the logs via a web 
-application.
-
-As an example, we provide below two figures that show the evolution of the loss 
-(Mean Absolute Error) and the accuracy (Pearson correlation coefficient) of the RouteNet model 
+As an example, the figures below show the evolution of the loss (Mean Absolute Error) and the accuracy (Pearson correlation coefficient) of the RouteNet model 
 that is provided in the ['trained_models' directory](trained_models).
 
 ![Loss of the model w.r.t. the training steps](demo_notebooks/assets/loss_routenet.jpg)

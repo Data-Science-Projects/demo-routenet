@@ -15,4 +15,4 @@ omnet_data_dir = os.getenv('OMNET_DATA_DIR')
 datasets = ['nsfnetbw', 'geant2bw', 'synth50bw']
 
 for dataset_name in datasets:
-    process_data(network_data_dir=omnet_data_dir + dataset_name)
+    process_data(network_data_dir=omnet_data_dir + '/datasets_v0/' + dataset_name)

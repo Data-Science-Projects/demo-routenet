@@ -1,4 +1,4 @@
-# OMNeT++ Datasets
+# OMNeT++ Data Files and Formats
 
 The code in the `routenet.data_utils` package processes network data into formats suitable for 
 modelling and predictions using TensorFlow. The source files and formats of the data are described 

@@ -221,7 +221,7 @@ def parse(serialized, target='delay'):
                                                                                              tf.int64)})
 
             for feature in ['traffic', target, 'link_capacity', 'links', 'paths', 'sequences']:
-                # This is normalisation for the form val-mean/std dev..
+                # This is normalisation for the form val-mean/std dev.
                 features[feature] = tf.sparse.to_dense(features[feature])
                 # TODO create switch for delay normalisation
                 if feature == 'delay':

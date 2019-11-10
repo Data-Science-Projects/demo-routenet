@@ -36,7 +36,7 @@ class TestModel(unittest.TestCase):
     def test_a_nsfnetbw_predictions(self):
         sample_file = self.get_sample('nsfnetbw')
         mse, r2 = test_utils.do_test_prediction(sample_file, self.proj_dir_root +
-                                                'model_checkpoints_nsfnetbw_synth50bw_50000',
+                                                'model_checkpoints_nsfnetbw_synth50bw_50000_v0',
                                                 normalise_pred=True)
         assert(mse < 0.0009)
         assert(r2 > 0.98)
@@ -45,7 +45,7 @@ class TestModel(unittest.TestCase):
         sample_file = self.get_sample('geant2bw')
         mse, r2 = test_utils.do_test_prediction(sample_file,
                                                 self.proj_dir_root +
-                                                'model_checkpoints_nsfnetbw_synth50bw_50000',
+                                                'model_checkpoints_nsfnetbw_synth50bw_50000_v0',
                                                 normalise_pred=True)
         assert(mse < 0.0009)
         assert(r2 > 0.98)

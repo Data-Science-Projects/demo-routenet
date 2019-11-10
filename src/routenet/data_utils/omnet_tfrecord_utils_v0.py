@@ -441,3 +441,28 @@ def get_corresponding_values(rslt_pos_gnrtr, result_data, num_paths):
                 itrtr = itrtr + 1
 
     return traffic_bw_txs, delays, jitters
+
+
+def count_data(network_data_dir):
+    # The directory is assumed to have a trailing '/', so make sure it does.
+    # TODO change to an assert and throw exception.
+    if network_data_dir[-1] != '/':
+        network_data_dir = network_data_dir + '/'
+
+    result_data_count = 0
+
+    # Get all of the tar.gz results files in the network data directory
+    for results_bundle_file_name in glob.glob(network_data_dir + '/*.tar.gz'):
+        # Open the network results data tar.gz
+        tar_file = tarfile.open(results_bundle_file_name, 'r:gz')
+
+        tar_info = tar_file.next()
+        if not tar_info.isdir():
+            raise Exception('Tar file with wrong format')
+
+        results_file = tar_file.extractfile(tar_info.name + '/simulationResults.txt')
+
+        for _ in results_file:
+            result_data_count += 1
+
+    return result_data_count

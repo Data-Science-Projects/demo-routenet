@@ -10,21 +10,29 @@ import glob
 import os
 import shutil
 
+from routenet.model.routenet_model_v0 import RouteNetModelV0
 from routenet.train import train_v0 as rn_train
 
 omnet_data_dir = os.getenv('OMNET_DATA_DIR')
 
 train_sets = ['nsfnetbw', 'geant2bw']
+eval_sets = ['synth50bw']
 
 train_files_list = []
 eval_files_list = []
-model_chkpnt_dir = '../model_checkpoints'
+model_chkpnt_dir = '../model_checkpoints-train'
 
 for name in train_sets:
 
     files_list = glob.glob(omnet_data_dir +
                                  '/datasets_v0/' + name + '/tfrecords/train/*.tfrecords')
     train_files_list = train_files_list + files_list
+
+    model_chkpnt_dir = model_chkpnt_dir + '_' + name
+
+model_chkpnt_dir = model_chkpnt_dir + '-eval'
+
+for name in eval_sets:
 
     files_list = glob.glob(omnet_data_dir +
                                          '/datasets_v0/' + name + '/tfrecords/evaluate/*.tfrecords')
@@ -34,7 +42,7 @@ for name in train_sets:
 
 train_steps = 50000
 
-model_chkpnt_dir = model_chkpnt_dir + '_v0/'
+model_chkpnt_dir = model_chkpnt_dir + '-' + str(train_steps) + '_v0/'
 
 shutil.rmtree(model_chkpnt_dir, ignore_errors=True)
 
@@ -44,4 +52,6 @@ rn_train.train_and_evaluate(model_dir=model_chkpnt_dir,
                             target='delay',
                             train_steps=train_steps,
                             eval_files=eval_files_list,
-                            warm_start_from=None)
+                            warm_start_from=None,
+                            model_hparams=RouteNetModelV0.default_hparams,
+                            checkpointing_config=rn_train.rn_default_checkpointing_config)
