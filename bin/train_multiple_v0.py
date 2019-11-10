@@ -22,6 +22,9 @@ train_files_list = []
 eval_files_list = []
 model_chkpnt_dir = '../model_checkpoints-train'
 
+warm_start = False
+warm_start_dir = None
+
 for name in train_sets:
 
     files_list = glob.glob(omnet_data_dir +
@@ -44,7 +47,10 @@ train_steps = 50000
 
 model_chkpnt_dir = model_chkpnt_dir + '-' + str(train_steps) + '_v0/'
 
-shutil.rmtree(model_chkpnt_dir, ignore_errors=True)
+if not warm_start:
+    shutil.rmtree(model_chkpnt_dir, ignore_errors=True)
+else:
+    warm_start_dir = model_chkpnt_dir
 
 rn_train.train_and_evaluate(model_dir=model_chkpnt_dir,
                             train_files=train_files_list,
@@ -52,6 +58,6 @@ rn_train.train_and_evaluate(model_dir=model_chkpnt_dir,
                             target='delay',
                             train_steps=train_steps,
                             eval_files=eval_files_list,
-                            warm_start_from=None,
+                            warm_start_from=warm_start_dir,
                             model_hparams=RouteNetModelV0.default_hparams,
                             checkpointing_config=rn_train.rn_default_checkpointing_config)
