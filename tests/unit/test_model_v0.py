@@ -6,7 +6,7 @@ import os
 import random
 import unittest
 
-import utils.test_utils as test_utils
+import rn_test_utils.test_utils as test_utils
 
 # TODO This code should be refactored with the code in the rn_notebook_utils.py
 

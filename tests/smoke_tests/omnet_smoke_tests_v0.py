@@ -11,8 +11,8 @@ import unittest
 
 import tensorflow as tf
 
+import rn_test_utils.test_utils as test_utils
 import routenet.data_utils.omnet_tfrecord_utils_v0
-import utils.test_utils as test_utils
 from routenet.train import train_v0 as rn_train
 
 TEST_CODE_DIR = os.path.dirname(os.path.abspath(__file__))
