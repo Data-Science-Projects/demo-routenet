@@ -6,12 +6,15 @@ __author__ = 'nsowatsk@cisco.com'
 This script trains, and creates checkpoints for, the RouteNetModel with the datasets from datasets_v0.
 """
 
+import datetime
 import glob
 import os
 import shutil
 
 from routenet.model.routenet_model_v0 import RouteNetModelV0
 from routenet.train import train_v0 as rn_train
+
+date_str = '{date:%Y-%m-%d_%H-%M-%S}'.format(date=datetime.datetime.now())
 
 omnet_data_dir = os.getenv('OMNET_DATA_DIR')
 
@@ -45,7 +48,7 @@ for name in eval_sets:
 
 train_steps = 50000
 
-model_chkpnt_dir = model_chkpnt_dir + '-' + str(train_steps) + '_v0/'
+model_chkpnt_dir = model_chkpnt_dir + '-' + str(train_steps) + '_v0_' + date_str + '/'
 
 if not warm_start:
     shutil.rmtree(model_chkpnt_dir, ignore_errors=True)
