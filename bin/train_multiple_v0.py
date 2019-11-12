@@ -46,7 +46,7 @@ for name in eval_sets:
 
     model_chkpnt_dir = model_chkpnt_dir + '_' + name
 
-train_steps = 50000
+train_steps = 100000
 
 model_chkpnt_dir = model_chkpnt_dir + '-' + str(train_steps) + '_v0_' + date_str + '/'
 
