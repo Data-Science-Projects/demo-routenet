@@ -2,6 +2,9 @@
 __copyright__ = 'Copyright 2019 Nathan Sowatskey, Ana Matute. All rights reserved.'
 __author__ = 'nsowatsk@cisco.com'
 
+import os
+import random
+
 import numpy as np
 import tensorflow as tf
 from sklearn.metrics import mean_squared_error, r2_score
@@ -11,6 +14,17 @@ from routenet.train.train_v0 import read_dataset
 
 
 # TODO This code should be refactored with the code in the rn_notebook_utils.py
+
+
+def get_sample(network_name, subset='evaluate', omnet_data_dir=None):
+    random.seed(13)
+    if not omnet_data_dir:
+        omnet_data_dir = os.getenv('OMNET_DATA_DIR')
+    train_data_path = omnet_data_dir + '/datasets_v0/' + network_name + '/tfrecords/' + subset + '/'
+    train_data_filename = random.choice(os.listdir(train_data_path))
+    sample_file = train_data_path + train_data_filename
+    return sample_file
+
 
 def get_model_readout(test_sample_file):
     graph = tf.Graph()
