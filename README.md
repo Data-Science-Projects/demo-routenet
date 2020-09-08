@@ -3,7 +3,6 @@
 ## Abstract
 
 This project is a tutorial for [RouteNet](https://arxiv.org/abs/1901.08113). 
-This project has the following aims:
 
 ## What is RouteNet?
 
